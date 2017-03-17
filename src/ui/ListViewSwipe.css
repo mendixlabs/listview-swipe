@@ -1,0 +1,42 @@
+.widget-listview-swipe > .mx-listview-list {
+    overflow: hidden;
+    will-change: transform, opacity;
+}
+
+.widget-listview-swipe .mx-listview-item.animate,
+.widget-listview-swipe .mx-listview-item.animate .swipe-foreground {
+    transition: all .4s;
+    -webkit-transition: all .4s;
+    touch-action: pan-y;
+}
+
+.widget-listview-swipe .swipe-foreground {
+    position: relative;
+    z-index: 30;
+    height: 100%;
+    background-color: #ffffff;
+}
+
+.widget-listview-swipe .swipe-background {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: #d3d3d3;
+    top: 0;
+    left: 0;
+    z-index: 20;
+}
+
+.widget-listview-swipe .swipe-background-after {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: #808080;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.mx-listview.widget-listview-swipe > .mx-list > .mx-listview-item {
+    padding: 0;
+}

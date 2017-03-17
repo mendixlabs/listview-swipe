@@ -4,12 +4,15 @@
   "description": "Enable swipe action on a list view",
   "copyright": "Flock of Birds",
   "author": "Andries Smit",
+  "private": true,
   "dependencies": {
+    "hammerjs": "^2.0.8"
   },
   "devDependencies": {
     "@types/big.js": "0.0.31",
     "@types/core-js": "^0.9.34",
     "@types/dojo": "^1.9.37",
+    "@types/hammerjs": "^2.0.34",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.27.3",
     "extract-text-webpack-plugin": "^2.1.0",
