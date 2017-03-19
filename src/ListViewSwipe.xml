@@ -19,7 +19,7 @@
             <category>General</category>
             <description>Make item gradually transparent while swiping</description>
         </property>
-        <property key="itemEntity" type="entity" allowNonPersistableEntities="true">
+        <property key="itemEntity" type="entity" allowNonPersistableEntities="true" required="false">
             <caption>Item entity</caption>
             <category>General</category>
             <description>Entity type of the list view, passed as context to the action</description>
@@ -34,7 +34,8 @@
             <category>Swipe to right</category>
             <description>Action take on swipe</description>
             <enumerationValues>
-                <enumerationValue key="disabled">Do nothing</enumerationValue>
+                <enumerationValue key="disabled">Disabled</enumerationValue>
+                <enumerationValue key="doNothing">Do nothing</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
             </enumerationValues>
@@ -67,6 +68,7 @@
             <enumerationValues>
                 <enumerationValue key="hide">Hide</enumerationValue>
                 <enumerationValue key="reset">Reset</enumerationValue>
+                <enumerationValue key="none">None</enumerationValue>
             </enumerationValues>
         </property>
         <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
@@ -74,7 +76,8 @@
             <category>Swipe to left</category>
             <description>Action take on swipe</description>
             <enumerationValues>
-                <enumerationValue key="disabled">Do nothing</enumerationValue>
+                <enumerationValue key="disabled">Disabled</enumerationValue>
+                <enumerationValue key="doNothing">Do nothing</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
             </enumerationValues>
@@ -107,6 +110,7 @@
             <enumerationValues>
                 <enumerationValue key="hide">Hide</enumerationValue>
                 <enumerationValue key="reset">Reset</enumerationValue>
+                <enumerationValue key="none">None</enumerationValue>
             </enumerationValues>
         </property>
     </properties>

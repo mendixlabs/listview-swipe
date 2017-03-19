@@ -152,11 +152,12 @@ class ListViewSwipe extends WidgetBase {
 
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
-        if (listEntity !== this.itemEntity) {
+        if (this.itemEntity && this.itemEntity !== listEntity) {
             this.showConfigError(`entity ${this.itemEntity} does not 
             match the listview entity ${listEntity} of ${this.targetName}`);
             return false;
         }
+        this.itemEntity = listEntity;
         if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
             this.showConfigError("no right microflow is setup");
             return false;
