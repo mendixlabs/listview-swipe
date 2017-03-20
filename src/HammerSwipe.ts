@@ -17,7 +17,7 @@ interface SwipeOptions {
 }
 
 type Direction = "right" | "left";
-type AfterSwipeAction = "reset" | "hide";
+type AfterSwipeAction = "reset" | "hide" | "none";
 
 class HammerSwipe {
     private container: HTMLElement;
@@ -59,6 +59,10 @@ class HammerSwipe {
         this.registerExtraEvents();
     }
 
+    destroy() {
+        this.hammer.destroy();
+    }
+
     private setupPanes(options: SwipeOptions) {
         this.foreElement = this.findElement(options.foregroundName, "Foreground", "swipe-foreground");
 
@@ -84,6 +88,20 @@ class HammerSwipe {
     }
 
     private onPan(ev: HammerInput) {
+        if (this.swipedOut && ev.type === "panstart") {
+            this.show(0, true);
+            this.removeClass(this.backElementRight, "hide");
+            this.removeClass(this.backElementLeft, "hide");
+            return;
+        }
+        if (this.swipedOut && ev.type === "panend") {
+            this.swipedOut = false;
+            return;
+        }
+        if (this.swipedOut) {
+            return;
+        }
+
         if (ev.type === "panstart") {
             this.isScrolling = false;
             this.thresholdCompensation = ev.deltaX;
@@ -145,14 +163,30 @@ class HammerSwipe {
     }
 
     private updateBackground(pos: number) {
-        this.afterElementRight && domClass.add(this.afterElementRight, "hidden");
-        this.afterElementLeft && domClass.add(this.afterElementLeft, "hidden");
+        this.addClass(this.afterElementRight, "hidden");
+        this.addClass(this.afterElementLeft, "hidden");
         if (pos < 0) {
-            this.backElementRight && this.backElementRight !== this.backElementLeft && domClass.add(this.backElementRight, "hidden");
-            this.backElementLeft && domClass.remove(this.backElementLeft, "hidden");
-        } else {
-            this.backElementRight && domClass.remove(this.backElementRight, "hidden");
-            this.backElementLeft && this.backElementRight !== this.backElementLeft && domClass.add(this.backElementLeft, "hidden");
+            if (this.backElementRight !== this.backElementLeft) {
+                this.addClass(this.backElementRight, "hidden");
+            }
+            this.removeClass(this.backElementLeft, "hidden");
+        } else if (pos > 0) {
+            this.removeClass(this.backElementRight, "hidden");
+            if (this.backElementRight !== this.backElementLeft) {
+                this.addClass(this.backElementLeft, "hidden");
+            }
+        }
+    }
+
+    private addClass(element: HTMLElement, className: string) {
+        if (element) {
+            element.classList.add(className);
+        }
+    }
+
+    private removeClass(element: HTMLElement, className: string) {
+        if (element && element.classList) {
+            element.classList.remove(className);
         }
     }
 
@@ -161,7 +195,42 @@ class HammerSwipe {
         domClass.add(this.container, "animate");
         domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;
+        if (direction === "left") {
+            this.addRestoreEvent(this.backElementLeft);
+        } else {
+            this.addRestoreEvent(this.backElementRight);
+        }
         this.hide(direction);
+    }
+
+    private addRestoreEvent(element: HTMLElement) {
+        if (element) {
+            const restore = (event: MouseEvent) => {
+                if (!this.inElement(element, event.target as HTMLElement, [ "mx-button", "mx-link", "clickable" ])) {
+                    event.stopPropagation();
+                }
+                this.removeClass(this.backElementRight, "hide");
+                this.removeClass(this.backElementLeft, "hide");
+                this.swipedOut = false;
+                this.show(0, true);
+                element.removeEventListener("click", restore, true);
+            };
+            element.addEventListener("click", restore, true);
+        }
+    }
+
+    private inElement(elementContainer: HTMLElement, element: HTMLElement, classNames: string[]): boolean {
+        let hasClass = false;
+        classNames.forEach(className => hasClass = hasClass || domClass.contains(element, className));
+        if (hasClass) {
+            return true;
+        } else {
+            if (elementContainer !== element) {
+                return this.inElement(elementContainer, element.parentNode as HTMLElement, classNames);
+            } else {
+                return false;
+            }
+        }
     }
 
     private hide(direction: Direction) {
@@ -178,11 +247,15 @@ class HammerSwipe {
         } else if (this.options.afterSwipeActionRight === "hide" && direction === "right" ||
             this.options.afterSwipeActionLeft === "hide" && direction === "left") {
             if (direction === "left") {
-                this.afterElementRight && this.afterElementRight !== this.afterElementLeft && domClass.add(this.afterElementRight, "hidden");
-                this.afterElementLeft && domClass.remove(this.afterElementLeft, "hidden");
+                if (this.afterElementRight !== this.afterElementLeft) {
+                    this.addClass(this.afterElementRight, "hidden");
+                }
+                this.removeClass(this.afterElementLeft, "hidden");
             } else {
-                this.afterElementRight && domClass.remove(this.afterElementRight, "hidden");
-                this.afterElementLeft && this.afterElementRight !== this.afterElementLeft && domClass.add(this.afterElementLeft, "hidden");
+                this.removeClass(this.afterElementRight, "hidden");
+                if (this.afterElementRight !== this.afterElementLeft) {
+                    this.addClass(this.afterElementLeft, "hidden");
+                }
             }
             setTimeout(() => {
                 domClass.add(this.container, "animate");
@@ -204,7 +277,9 @@ class HammerSwipe {
                     domStyle.set(this.container, {
                         height: this.container.offsetHeight + "px"
                     });
-                    if (this.backElementRight) { domClass.add(this.backElementRight, "hide"); }
+                    if (this.backElementRight) {
+                        domClass.add(this.backElementRight, "hide");
+                    }
                 }
             });
         }
@@ -214,7 +289,9 @@ class HammerSwipe {
                     domStyle.set(this.container, {
                         height: this.container.offsetHeight + "px"
                     });
-                    if (this.backElementLeft) { domClass.add(this.backElementLeft, "hide"); }
+                    if (this.backElementLeft) {
+                        domClass.add(this.backElementLeft, "hide");
+                    }
                 }
             });
         }

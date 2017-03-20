@@ -11,7 +11,7 @@ import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./Hammer
 
 import "./ui/ListViewSwipe.css";
 
-type OnSwipeAction = "disabled" | "showPage" | "callMicroflow";
+type OnSwipeAction = "disabled" | "doNothing" | "showPage" | "callMicroflow";
 
 interface ListView extends mxui.widget._WidgetBase {
     datasource: { path: string };
@@ -44,8 +44,10 @@ class ListViewSwipe extends WidgetBase {
     private targetWidget: ListView;
     private targetNode: HTMLElement;
     private contextObject: mendix.lib.MxObject;
+    private hammers: HammerSwipe[];
 
     postCreate() {
+        this.hammers = [];
         this.swipeClass = "widget-listview-swipe";
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
@@ -84,7 +86,7 @@ class ListViewSwipe extends WidgetBase {
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
                         Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                            new HammerSwipe(container, swipeOptions);
+                            this.hammers.push(new HammerSwipe(container, swipeOptions));
                         }, this);
                     } catch (error) {
                         this.showConfigError(error.message);
@@ -94,6 +96,13 @@ class ListViewSwipe extends WidgetBase {
         }
 
         if (callback) callback();
+    }
+
+    uninitialize(): boolean {
+        this.hammers.forEach((hammer) => {
+            hammer.destroy();
+        });
+        return true;
     }
 
     private findTargetNode(name: string): HTMLElement {
@@ -184,7 +193,7 @@ class ListViewSwipe extends WidgetBase {
     private showConfigError(message: string) {
         // window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
         domConstruct.place(`<div class='alert alert-danger'>List view swipe configuration error:<br>
-             - ${message}</div>`, this.domNode, "only");
+             - ${message}</div>`, this.targetNode || this.domNode, "first");
         window.logger.error(this.id, `configuration error: ${message}`);
     }
 
