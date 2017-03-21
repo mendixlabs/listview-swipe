@@ -16,6 +16,11 @@ interface SwipeOptions {
     transparentOnSwipe?: boolean;
 }
 
+interface AfterSwipeOptions {
+    elementName: string;
+    action: AfterSwipeAction;
+}
+
 type Direction = "right" | "left";
 type AfterSwipeAction = "reset" | "hide" | "none";
 
@@ -201,6 +206,7 @@ class HammerSwipe {
             this.addRestoreEvent(this.backElementRight);
         }
         this.hide(direction);
+        domClass.add(this.foreElement, "swiped-out");
     }
 
     private addRestoreEvent(element: HTMLElement) {
@@ -214,6 +220,7 @@ class HammerSwipe {
                 this.swipedOut = false;
                 this.show(0, true);
                 element.removeEventListener("click", restore, true);
+                domClass.remove(this.foreElement, "swiped-out");
             };
             element.addEventListener("click", restore, true);
         }

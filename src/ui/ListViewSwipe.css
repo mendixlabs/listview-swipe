@@ -40,3 +40,7 @@
 .mx-listview.widget-listview-swipe > .mx-list > .mx-listview-item {
     padding: 0;
 }
+
+.swiped-out {
+    visibility: hidden;
+}
