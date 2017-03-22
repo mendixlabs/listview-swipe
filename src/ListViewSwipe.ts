@@ -86,7 +86,8 @@ class ListViewSwipe extends WidgetBase {
 
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
-                        Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
+                        Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item:not(.swipe-connected)"), (container: HTMLElement) => {
+                            container.classList.add("swipe-connected");
                             this.hammers.push(new HammerSwipe(container, swipeOptions));
                         }, this);
                     } catch (error) {
