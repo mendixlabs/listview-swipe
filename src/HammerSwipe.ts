@@ -12,6 +12,7 @@ interface SwipeOptions {
     callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
     foregroundName: string;
+    parentElement: HTMLElement;
     swipeDirection: Direction | "horizontal";
     transparentOnSwipe?: boolean;
 }
@@ -92,14 +93,16 @@ class HammerSwipe {
         return element;
     }
 
-    private onPan(ev: HammerInput) {
-        if (this.swipedOut && ev.type === "panstart") {
+    private onPan(event: HammerInput) {
+        if (event.pointerType === "mouse") return;
+        if (this.swipedOut && event.type === "panstart") {
             this.show(0, true);
             this.removeClass(this.backElementRight, "hide");
             this.removeClass(this.backElementLeft, "hide");
+            domClass.remove(this.foreElement, "swiped-out");
             return;
         }
-        if (this.swipedOut && ev.type === "panend") {
+        if (this.swipedOut && event.type === "panend") {
             this.swipedOut = false;
             return;
         }
@@ -107,15 +110,15 @@ class HammerSwipe {
             return;
         }
 
-        if (ev.type === "panstart") {
+        if (event.type === "panstart") {
             this.isScrolling = false;
-            this.thresholdCompensation = ev.deltaX;
+            this.thresholdCompensation = event.deltaX;
         }
         if (this.isScrolling) {
             return;
         }
         const maximumPercentage = 100;
-        let currentPercentage = (maximumPercentage / this.containerSize) * (ev.deltaX - this.thresholdCompensation);
+        let currentPercentage = (maximumPercentage / this.containerSize) * (event.deltaX - this.thresholdCompensation);
         if (this.direction === Hammer.DIRECTION_RIGHT && currentPercentage < 0) {
             currentPercentage = 0;
         }
@@ -123,14 +126,15 @@ class HammerSwipe {
             currentPercentage = 0;
         }
         let animate = false;
-        const isScrolling = Math.abs(ev.deltaY) > this.thresholdScrolling;
+        const isScrolling = Math.abs(event.deltaY) > this.thresholdScrolling;
         if (isScrolling) {
             this.isScrolling = true;
             this.show(0, true);
             return;
         }
-        if (ev.type === "panend" || ev.type === "pancancel") {
-            if (Math.abs(currentPercentage) > this.swipeAcceptThreshold && ev.type === "panend") {
+        if (event.type === "panend" || event.type === "pancancel") {
+            if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold || Math.abs(event.velocityX) > 1.3)
+                && event.type === "panend") {
                 const direction: Direction = currentPercentage < 0 ? "left" : "right";
                 this.out(direction);
                 return;
@@ -200,10 +204,11 @@ class HammerSwipe {
         domClass.add(this.container, "animate");
         domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;
-        if (direction === "left") {
-            this.addRestoreEvent(this.backElementLeft);
-        } else {
-            this.addRestoreEvent(this.backElementRight);
+        if (this.options.afterSwipeActionLeft === "none" && direction === "left") {
+            this.addRestoreEvent(this.options.parentElement);
+        }
+        if (this.options.afterSwipeActionRight === "none" && direction === "right") {
+            this.addRestoreEvent(this.options.parentElement);
         }
         this.hide(direction);
         domClass.add(this.foreElement, "swiped-out");
@@ -245,6 +250,7 @@ class HammerSwipe {
             this.options.afterSwipeActionLeft === "reset" && direction === "left") {
             setTimeout(() => {
                 domClass.remove(this.container, "animate");
+                domClass.remove(this.foreElement, "swiped-out");
                 domStyle.set(this.foreElement, {
                     opacity: 1,
                     transform: "translate3d(0, 0, 0)"
