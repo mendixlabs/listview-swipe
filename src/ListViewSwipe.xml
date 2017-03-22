@@ -57,18 +57,19 @@
             <description>Optional name of the container shown as background during swiping, requires a foreground</description>
         </property>
         <property key="afterSwipeBackgroundNameRight" type="string" required="false">
-            <caption>Background after Swipe to right</caption>
+            <caption>Background hide right</caption>
             <category>Swipe to right</category>
-            <description>Optional name of the container shown during hide animation, requires a foreground</description>
+            <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
         </property>
         <property key="afterSwipeActionRight" type="enumeration" required="true" defaultValue="hide">
             <caption>After swipe right</caption>
             <category>Swipe to right</category>
             <description>Animate hiding the item or restore the item to the original position</description>
             <enumerationValues>
-                <enumerationValue key="hide">Hide</enumerationValue>
-                <enumerationValue key="reset">Reset</enumerationValue>
-                <enumerationValue key="none">None</enumerationValue>
+                <enumerationValue key="hide">Move out, hide</enumerationValue>
+                <enumerationValue key="reset">Move out, reset</enumerationValue>
+                <enumerationValue key="none">Move out</enumerationValue>
+                <enumerationValue key="back">Move back</enumerationValue>
             </enumerationValues>
         </property>
         <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
@@ -99,18 +100,19 @@
             <description>Optional name of the container shown as background during swiping, requires a foreground</description>
         </property>
         <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
-            <caption>Background after Swipe to left</caption>
+            <caption>Background hide left</caption>
             <category>Swipe to left</category>
-            <description>Optional name of the container shown during hide animation, requires a foreground</description>
+            <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
         </property>
         <property key="afterSwipeActionLeft" type="enumeration" required="true" defaultValue="hide">
             <caption>After swipe left</caption>
             <category>Swipe to left</category>
             <description>Animate hiding the item or restore the item to the original position</description>
             <enumerationValues>
-                <enumerationValue key="hide">Hide</enumerationValue>
-                <enumerationValue key="reset">Reset</enumerationValue>
-                <enumerationValue key="none">None</enumerationValue>
+                <enumerationValue key="hide">Move out, hide</enumerationValue>
+                <enumerationValue key="reset">Move out, reset</enumerationValue>
+                <enumerationValue key="none">Move out</enumerationValue>
+                <enumerationValue key="back">Move back</enumerationValue>
             </enumerationValues>
         </property>
     </properties>

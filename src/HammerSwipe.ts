@@ -22,7 +22,7 @@ interface AfterSwipeOptions {
 }
 
 type Direction = "right" | "left";
-type AfterSwipeAction = "reset" | "hide" | "none";
+type AfterSwipeAction = "reset" | "hide" | "none" | "back";
 
 class HammerSwipe {
     private container: HTMLElement;
@@ -93,10 +93,11 @@ class HammerSwipe {
     }
 
     private resetElements(animate = true) {
-        this.show(0, animate);
         this.removeClass(this.backElementRight, "hide");
         this.removeClass(this.backElementLeft, "hide");
         this.removeClass(this.foreElement, "swiped-out");
+        this.removeClass(this.container, "will-accept-swipe");
+        this.show(0, animate);
     }
 
     private onPan(event: HammerInput) {
@@ -134,6 +135,11 @@ class HammerSwipe {
             this.isScrolling = true;
             this.show(0, true);
             return;
+        }
+        if (Math.abs(currentPercentage) > this.swipeAcceptThreshold ) {
+            this.addClass(this.container, "will-accept-swipe");
+        } else {
+            this.removeClass(this.container, "will-accept-swipe");
         }
         if (event.type === "panend" || event.type === "pancancel") {
             if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold || Math.abs(event.velocityX) > 1.3)
@@ -214,8 +220,7 @@ class HammerSwipe {
         if (this.options.afterSwipeActionRight === "none" && direction === "right") {
             this.addRestoreEvent(this.options.parentElement);
         }
-        this.hide(direction);
-        this.addClass(this.foreElement, "swiped-out");
+        this.afterSwipe(direction);
     }
 
     private addRestoreEvent(element: HTMLElement) {
@@ -246,8 +251,13 @@ class HammerSwipe {
         }
     }
 
-    private hide(direction: Direction) {
-        if (this.options.afterSwipeActionRight === "reset" && direction === "right" ||
+    private afterSwipe(direction: Direction) {
+        if (this.options.afterSwipeActionRight === "back" && direction === "right" ||
+            this.options.afterSwipeActionLeft === "back" && direction === "left") {
+            this.resetElements(true);
+            this.swipedOut = false;
+            this.options.callback(this.container, direction);
+        } else if (this.options.afterSwipeActionRight === "reset" && direction === "right" ||
             this.options.afterSwipeActionLeft === "reset" && direction === "left") {
             setTimeout(() => {
                 this.resetElements(false);
@@ -277,6 +287,9 @@ class HammerSwipe {
                     this.options.callback(this.container, direction);
                 }, this.removeItemDelay);
             }, this.options.callbackDelay);
+        } else if (this.options.afterSwipeActionRight === "none" && direction === "right" ||
+            this.options.afterSwipeActionLeft === "none" && direction === "left") {
+            this.addClass(this.foreElement, "swiped-out");
         }
     }
 
