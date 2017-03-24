@@ -1,5 +1,10 @@
 "use strict";
-var webpackConfig = require("./webpack.config");
+const webpack = require("webpack");
+const webpackConfig = require("./webpack.config");
+const webpackConfigRelease = {};
+Object.assign(webpackConfigRelease, webpackConfig, {
+    devtool: false
+});
 
 module.exports = function (grunt) {
     var pkg = grunt.file.readJSON("package.json");
@@ -8,7 +13,7 @@ module.exports = function (grunt) {
         watch: {
             updateWidgetFiles: {
                 files: [ "./dist/tmp/src/**/*" ],
-                tasks: [ "webpack", "compress:dist", "copy:distDeployment", "copy:mpk" ],
+                tasks: [ "webpack:develop", "compress:dist", "copy:distDeployment", "copy:mpk" ],
                 options: {
                     debounceDelay: 250,
                     livereload: true
@@ -61,7 +66,8 @@ module.exports = function (grunt) {
         },
 
         webpack: {
-            renderer: webpackConfig
+            develop: webpackConfig,
+            release: webpackConfigRelease
         },
 
         clean: {
@@ -88,8 +94,13 @@ module.exports = function (grunt) {
     grunt.registerTask("default", [ "clean build", "watch" ]);
     grunt.registerTask(
         "clean build",
-        "Compiles all the assets and copies the files to the build directory.",
-        [ "checkDependencies", "clean:build", "webpack", "compress:dist", "copy:mpk" ]
+        "Compiles all the assets and copies the files to the dist directory.",
+        [ "checkDependencies", "clean:build", "webpack:develop", "compress:dist", "copy:mpk" ]
+    );
+    grunt.registerTask(
+        "release",
+        "Compiles all the assets and copies the files to the dist directory. Minified without source mapping",
+        [ "checkDependencies", "clean:build", "webpack:release", "compress:dist", "copy:mpk" ]
     );
     grunt.registerTask("build", [ "clean build" ]);
 };
