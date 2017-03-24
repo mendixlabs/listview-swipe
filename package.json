@@ -27,12 +27,12 @@
     "json-loader": "^0.5.4",
     "mendix-client": "git+https://github.com/FlockOfBirds/Mendix-client-typing.git",
     "source-map-loader": "^0.2.0",
-    "style-loader": "^0.14.0",
-    "ts-loader": "^2.0.1",
+    "style-loader": "^0.16.0",
+    "ts-loader": "^2.0.3",
     "tslint": "^4.5.1",
     "tslint-eslint-rules": "^3.4.0",
     "typescript": "^2.2.1",
-    "webpack": "^2.2.1",
+    "webpack": "^2.3.1",
     "webpack-dev-server": "^2.4.2"
   }
 }
