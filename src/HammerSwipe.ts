@@ -22,7 +22,7 @@ interface AfterSwipeOptions {
 }
 
 type Direction = "right" | "left";
-type AfterSwipeAction = "reset" | "hide" | "none" | "back";
+type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 
 class HammerSwipe {
     private container: HTMLElement;
@@ -37,14 +37,16 @@ class HammerSwipe {
     private backElementLeft: HTMLElement;
     private afterElementRight: HTMLElement;
     private afterElementLeft: HTMLElement;
-
+    private borderRight = 0;
+    private borderLeft = 0;
     private direction: number;
     private thresholdCompensation = 0;
     // Internal settings
     readonly thresholdScrolling = 60; // Pixels.
-    readonly swipeAcceptThreshold = 20; // Percentage.
+    readonly swipeAcceptThreshold = 30; // Percentage.
     readonly removeItemDelay = 400; // Milliseconds
-    readonly moveThreshold = 30; // Pixels
+    readonly moveThreshold = 25; // Pixels
+    readonly flickVelocity = 1.2; // Pixels per milliseconds
 
     constructor(container: HTMLElement, options: SwipeOptions) {
         this.container = container;
@@ -69,25 +71,56 @@ class HammerSwipe {
     }
 
     private setupPanes(options: SwipeOptions) {
-        this.foreElement = this.findElement(options.foregroundName, "Foreground", "swipe-foreground");
+        // Foreground is the mx-dataview-content
+        this.foreElement = this.container.firstChild.firstChild as HTMLElement;
+        this.addClass(this.foreElement, "swipe-foreground");
 
-        if (this.foreElement) {
-            this.backElementRight = this.findElement(options.backgroundNameRight, "Background right", "swipe-background");
-            this.backElementLeft = this.findElement(options.backgroundNameLeft, "Background left", "swipe-background");
-            this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "After swipe background right", "swipe-background-after");
-            this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "After swipe background left", "swipe-background-after");
-        } else {
-            this.foreElement = this.container;
+        this.backElementRight = this.findElement(options.backgroundNameRight, "Swipe container right", "swipe-background");
+        this.backElementLeft = this.findElement(options.backgroundNameLeft, "Swipe container left", "swipe-background");
+        this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "Hide container right", "swipe-background-after");
+        this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "Hide container left", "swipe-background-after");
+
+        this.FindButtonsPositions();
+    }
+
+    private FindButtonsPositions() {
+        if (this.backElementRight && this.options.afterSwipeActionRight === "button") {
+            const buttonsRight = this.backElementRight.querySelectorAll(".mx-button, .mx-link, .clickable");
+            for (let i = 0; i < buttonsRight.length; i++) {
+                const el = buttonsRight[i] as HTMLElement;
+                const right = el.getBoundingClientRect().left + el.offsetWidth;
+                this.borderRight = this.borderRight ? this.borderRight < right ? right : this.borderRight : right;
+            }
+            if (buttonsRight.length === 0) {
+                throw new Error(`no buttons or links found in the '${this.options.backgroundNameRight}' container. ` +
+                    `This is required when after swipe right is set to Stick to button.`);
+            }
+        }
+        if (this.backElementLeft && this.options.afterSwipeActionLeft === "button") {
+            const buttonsLeft = this.backElementLeft.querySelectorAll(".mx-button, .mx-link, .clickable");
+            for (let i = 0; i < buttonsLeft.length; i++) {
+                const el = buttonsLeft[i] as HTMLElement;
+                const left = el.getBoundingClientRect().left;
+                this.borderLeft = this.borderLeft ? this.borderLeft > left ? left : this.borderLeft : left;
+            }
+            if (buttonsLeft.length === 0) {
+                throw new Error(`no buttons or links found in the '${this.options.backgroundNameLeft}' container. ` +
+                    `This is required when after swipe left is set to Stick to button.`);
+            }
         }
     }
 
     private findElement(name: string, displayName: string, addClass?: string): HTMLElement | null {
         const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : null;
         if (name && !element) {
-            throw new Error(`no ${displayName} element found with the name ${name}`);
+            throw new Error(`no '${displayName}' found named ${name}`);
         }
         if (element && addClass) {
             this.addClass(element, addClass);
+        }
+        if (element) {
+            // Move additional elements to become a sibling of the the foreground
+            this.foreElement.parentElement.appendChild(element);
         }
         return element;
     }
@@ -142,7 +175,7 @@ class HammerSwipe {
             this.removeClass(this.container, "will-accept-swipe");
         }
         if (event.type === "panend" || event.type === "pancancel") {
-            if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold || Math.abs(event.velocityX) > 1.3)
+            if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold || Math.abs(event.velocityX) > this.flickVelocity)
                 && event.type === "panend") {
                 const direction: Direction = currentPercentage < 0 ? "left" : "right";
                 this.out(direction);
@@ -210,7 +243,16 @@ class HammerSwipe {
     }
 
     private out(direction: Direction) {
-        const pos = direction === "left" ? -this.containerSize : this.containerSize;
+        let pos;
+        if (this.options.afterSwipeActionLeft === "button" && direction === "left") {
+            pos = -this.containerSize + this.borderLeft;
+            this.addRestoreEvent(this.options.parentElement);
+        } else if (this.options.afterSwipeActionRight === "button" && direction === "right") {
+            pos = this.borderRight;
+            this.addRestoreEvent(this.options.parentElement);
+        } else {
+            pos = direction === "left" ? -this.containerSize : this.containerSize;
+        }
         this.addClass(this.container, "animate");
         domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;

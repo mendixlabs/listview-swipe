@@ -9,11 +9,6 @@
             <category>General</category>
             <description>Name of the listview, place this widget directly below the list view</description>
         </property>
-        <property key="foregroundName" type="string" required="false">
-            <caption>Foreground</caption>
-            <category>General</category>
-            <description>Optional name of the container to swipe, when empty list view item is used</description>
-        </property>
         <property key="transparentOnSwipe" type="boolean" required="true" defaultValue="false">
             <caption>Transparent swipe</caption>
             <category>General</category>
@@ -35,7 +30,7 @@
             <description>Action take on swipe</description>
             <enumerationValues>
                 <enumerationValue key="disabled">Disabled</enumerationValue>
-                <enumerationValue key="doNothing">Do nothing</enumerationValue>
+                <enumerationValue key="doNothing">No action</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
             </enumerationValues>
@@ -52,12 +47,12 @@
             <description>The page to open after swiping, should contain a 'Item entity' data view</description>
         </property>
         <property key="backgroundNameRight" type="string" required="false">
-            <caption>Background right</caption>
+            <caption>Swipe container right</caption>
             <category>Swipe to right</category>
             <description>Optional name of the container shown as background during swiping, requires a foreground</description>
         </property>
         <property key="afterSwipeBackgroundNameRight" type="string" required="false">
-            <caption>Background hide right</caption>
+            <caption>Hide container right</caption>
             <category>Swipe to right</category>
             <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
         </property>
@@ -70,6 +65,7 @@
                 <enumerationValue key="reset">Move out, reset</enumerationValue>
                 <enumerationValue key="none">Move out</enumerationValue>
                 <enumerationValue key="back">Move back</enumerationValue>
+                <enumerationValue key="button">Stick to button</enumerationValue>
             </enumerationValues>
         </property>
         <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
@@ -78,7 +74,7 @@
             <description>Action take on swipe</description>
             <enumerationValues>
                 <enumerationValue key="disabled">Disabled</enumerationValue>
-                <enumerationValue key="doNothing">Do nothing</enumerationValue>
+                <enumerationValue key="doNothing">No action</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
             </enumerationValues>
@@ -95,12 +91,12 @@
             <description>The page to open after swiping, should contain a 'Item entity' data view</description>
         </property>
         <property key="backgroundNameLeft" type="string" required="false">
-            <caption>Background left</caption>
+            <caption>Swipe container left</caption>
             <category>Swipe to left</category>
             <description>Optional name of the container shown as background during swiping, requires a foreground</description>
         </property>
         <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
-            <caption>Background hide left</caption>
+            <caption>Hide container left</caption>
             <category>Swipe to left</category>
             <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
         </property>
@@ -113,6 +109,7 @@
                 <enumerationValue key="reset">Move out, reset</enumerationValue>
                 <enumerationValue key="none">Move out</enumerationValue>
                 <enumerationValue key="back">Move back</enumerationValue>
+                <enumerationValue key="button">Stick to button</enumerationValue>
             </enumerationValues>
         </property>
     </properties>

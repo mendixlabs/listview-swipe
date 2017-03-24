@@ -131,11 +131,11 @@ class ListViewSwipe extends WidgetBase {
 
     private validateConfig(): boolean {
         if (!this.targetNode) {
-            this.showConfigError(`unable to find listview with the name "${this.targetName}"`);
+            this.showConfigError(`unable to find 'Target listview' named '${this.targetName}'`);
             return false;
         }
         if (this.isDescendant(this.targetNode, this.domNode)) {
-            this.showConfigError("widget should not be placed inside the list view, move it just below");
+            this.showConfigError("The widget should not be placed inside the list view, move it just below");
             return false;
         }
         this.targetWidget = registry.byNode(this.targetNode);
@@ -144,7 +144,7 @@ class ListViewSwipe extends WidgetBase {
             return false;
         }
         if (this.targetWidget.declaredClass !== "mxui.widget.ListView") {
-            this.showConfigError(`target name "${this.targetName}" is not of the type listview`);
+            this.showConfigError(`'Target listview' name '${this.targetName}' is not of the type listview`);
             return false;
         }
         if (this.targetWidget._renderData === undefined
@@ -155,8 +155,8 @@ class ListViewSwipe extends WidgetBase {
                 return false;
         }
         if (this.targetWidget.connectListviewSwipeWidget) {
-            this.showConfigError(`list view "${this.targetName}" can only have on swipe widget,
-            it is already connected to "${this.targetWidget.connectListviewSwipeWidget}"`);
+            this.showConfigError(`list view '${this.targetName}' can only have on swipe widget,
+            it is already connected to ${this.targetWidget.connectListviewSwipeWidget}`);
             return false;
         }
         this.targetWidget.connectListviewSwipeWidget = this.id;
@@ -164,38 +164,49 @@ class ListViewSwipe extends WidgetBase {
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (this.itemEntity && this.itemEntity !== listEntity) {
-            this.showConfigError(`entity ${this.itemEntity} does not 
-            match the listview entity ${listEntity} of ${this.targetName}`);
+            this.showConfigError(`'Item entity' ${this.itemEntity} does not 
+            match the listview entity ${listEntity}`);
             return false;
         }
         this.itemEntity = listEntity;
         if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
-            this.showConfigError("no right microflow is setup");
+            this.showConfigError("no 'Microflow right' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "callMicroflow" && !this.onSwipeMicroflowLeft) {
-            this.showConfigError("no left microflow is setup");
+            this.showConfigError("no 'Microflow left' is selected");
             return false;
         }
         if (this.onSwipeActionRight === "showPage" && !this.onSwipePageRight) {
-            this.showConfigError("no right page is setup");
+            this.showConfigError("no 'Open page right' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "showPage" && !this.onSwipePageLeft) {
-            this.showConfigError("no left page is setup");
+            this.showConfigError("no 'Open page left' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
-            this.showConfigError("no swipe action left or right selected");
+            this.showConfigError("no 'On swipe' action left or right selected");
+            return false;
+        }
+        if (this.afterSwipeActionRight === "button" && this.backgroundNameRight === "") {
+            this.showConfigError("no 'Swipe container right' name provided." +
+                "This is required when 'After swipe right' is set to stick to button");
+            return false;
+        }
+        if (this.afterSwipeActionLeft === "button" && this.backgroundNameLeft === "") {
+            this.showConfigError("no 'Swipe container left' name provided." +
+                "This is required when 'After swipe left' is set to Stick to button");
             return false;
         }
         return true;
     }
 
     private showConfigError(message: string) {
-        // window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
+        // Place the message inside the list view, only when it is rendered, else the message is removed.
+        const node = this.targetNode && this.targetNode.hasChildNodes() ? this.targetNode : this.domNode;
         domConstruct.place(`<div class='alert alert-danger'>List view swipe configuration error:<br>
-             - ${message}</div>`, this.targetNode || this.domNode, "first");
+        - ${message}</div>`, node, "first");
         window.logger.error(this.id, `configuration error: ${message}`);
     }
 
