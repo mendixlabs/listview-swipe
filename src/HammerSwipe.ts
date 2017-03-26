@@ -2,12 +2,9 @@ import * as Hammer from "hammerjs";
 import * as domStyle from "dojo/dom-style";
 
 interface SwipeOptions {
-    afterSwipeActionLeft: AfterSwipeAction;
-    afterSwipeActionRight: AfterSwipeAction;
-    afterSwipeBackgroundNameLeft?: string;
-    afterSwipeBackgroundNameRight?: string;
-    backgroundNameLeft: string;
-    backgroundNameRight: string;
+    afterSwipeAction: {left: AfterSwipeAction, right: AfterSwipeAction};
+    afterSwipeBackgroundName: {left: string, right: string };
+    backgroundName: {left: string, right: string};
     callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
     foregroundName: string;
@@ -33,13 +30,12 @@ class HammerSwipe {
     private options: SwipeOptions;
     private swipedOut = false;
     private isScrolling = false;
-    private backElementRight: HTMLElement;
-    private backElementLeft: HTMLElement;
-    private afterElementRight: HTMLElement;
-    private afterElementLeft: HTMLElement;
+    private backElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
+    private afterElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
+    private border = { left: 0, right: 0 };
     private borderRight = 0;
     private borderLeft = 0;
-    private direction: number;
+    private swipeDirection: number;
     private thresholdCompensation = 0;
     // Internal settings
     readonly thresholdScrolling = 60; // Pixels.
@@ -53,17 +49,20 @@ class HammerSwipe {
         this.options = options;
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
-        this.direction = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
+        this.swipeDirection = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
 
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({
-            direction: this.direction,
+            direction: this.swipeDirection,
             threshold: this.moveThreshold
         }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
         this.setupPanes(options);
-        this.registerExtraEvents();
+        this.border.left = -this.containerSize + this.findButtonsPositions("left");
+        this.border.right = this.findButtonsPositions("right");
+        this.registerExtraEvents("left");
+        this.registerExtraEvents("right");
     }
 
     destroy() {
@@ -75,43 +74,41 @@ class HammerSwipe {
         this.foreElement = this.container.firstChild.firstChild as HTMLElement;
         this.addClass(this.foreElement, "swipe-foreground");
 
-        this.backElementRight = this.findElement(options.backgroundNameRight, "Swipe container right", "swipe-background");
-        this.backElementLeft = this.findElement(options.backgroundNameLeft, "Swipe container left", "swipe-background");
-        this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "Hide container right", "swipe-background-after");
-        this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "Hide container left", "swipe-background-after");
-
-        this.FindButtonsPositions();
+        this.backElement = {
+            left: this.findElement(options.backgroundName.left, "Swipe container left", "swipe-background"),
+            right: this.findElement(options.backgroundName.right, "Swipe container right", "swipe-background")
+        };
+        this.afterElement = {
+            left: this.findElement(options.afterSwipeBackgroundName.left, "Hide container left", "swipe-background-after"),
+            right: this.findElement(options.afterSwipeBackgroundName.right, "Hide container right", "swipe-background-after")
+        };
     }
 
-    private FindButtonsPositions() {
-        if (this.backElementRight && this.options.afterSwipeActionRight === "button") {
-            const buttonsRight = this.backElementRight.querySelectorAll(".mx-button, .mx-link, .clickable");
-            for (let i = 0; i < buttonsRight.length; i++) {
-                const el = buttonsRight[i] as HTMLElement;
-                const right = el.getBoundingClientRect().left + el.offsetWidth;
-                this.borderRight = this.borderRight ? this.borderRight < right ? right : this.borderRight : right;
+    private findButtonsPositions(direction: Direction): number {
+        let border = 0;
+        const backElement = this.backElement[direction];
+        if (backElement && this.options.afterSwipeAction[direction] === "button") {
+            const buttons = backElement.querySelectorAll(".mx-button, .mx-link, .clickable");
+            for (let i = 0; i < buttons.length; i++) {
+                const el = buttons[i] as HTMLElement;
+                let position = el.getBoundingClientRect().left;
+                if (direction === "left") {
+                    border = border ? border > position ? position : border : position;
+                } else {
+                    position += el.offsetWidth;
+                    border = border ? border < position ? position : border : position;
+                }
             }
-            if (buttonsRight.length === 0) {
-                throw new Error(`no buttons or links found in the '${this.options.backgroundNameRight}' container. ` +
-                    `This is required when after swipe right is set to Stick to button.`);
-            }
-        }
-        if (this.backElementLeft && this.options.afterSwipeActionLeft === "button") {
-            const buttonsLeft = this.backElementLeft.querySelectorAll(".mx-button, .mx-link, .clickable");
-            for (let i = 0; i < buttonsLeft.length; i++) {
-                const el = buttonsLeft[i] as HTMLElement;
-                const left = el.getBoundingClientRect().left;
-                this.borderLeft = this.borderLeft ? this.borderLeft > left ? left : this.borderLeft : left;
-            }
-            if (buttonsLeft.length === 0) {
-                throw new Error(`no buttons or links found in the '${this.options.backgroundNameLeft}' container. ` +
-                    `This is required when after swipe left is set to Stick to button.`);
+            if (buttons.length === 0) {
+                throw new Error(`no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
+                    `container. This is required when after swipe ${direction} is set to Stick to button.`);
             }
         }
+        return border;
     }
 
-    private findElement(name: string, displayName: string, addClass?: string): HTMLElement | null {
-        const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : null;
+    private findElement(name: string, displayName: string, addClass?: string): HTMLElement | undefined {
+        const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : undefined;
         if (name && !element) {
             throw new Error(`no '${displayName}' found named ${name}`);
         }
@@ -126,11 +123,11 @@ class HammerSwipe {
     }
 
     private resetElements(animate = true) {
-        this.removeClass(this.backElementRight, "hide");
-        this.removeClass(this.backElementLeft, "hide");
+        this.removeClass(this.backElement.right, "hide");
+        this.removeClass(this.backElement.left, "hide");
         this.removeClass(this.foreElement, "swiped-out");
         this.removeClass(this.container, "will-accept-swipe");
-        this.show(0, animate);
+        this.show(0, undefined, animate);
     }
 
     private onPan(event: HammerInput) {
@@ -156,17 +153,17 @@ class HammerSwipe {
         }
         const maximumPercentage = 100;
         let currentPercentage = (maximumPercentage / this.containerSize) * (event.deltaX - this.thresholdCompensation);
-        if (this.direction === Hammer.DIRECTION_RIGHT && currentPercentage < 0) {
+        if (this.swipeDirection === Hammer.DIRECTION_RIGHT && currentPercentage < 0) {
             currentPercentage = 0;
         }
-        if (this.direction === Hammer.DIRECTION_LEFT && currentPercentage > 0) {
+        if (this.swipeDirection === Hammer.DIRECTION_LEFT && currentPercentage > 0) {
             currentPercentage = 0;
         }
         let animate = false;
         const isScrolling = Math.abs(event.deltaY) > this.thresholdScrolling;
         if (isScrolling) {
             this.isScrolling = true;
-            this.show(0, true);
+            this.show(0, undefined, true);
             return;
         }
         if (Math.abs(currentPercentage) > this.swipeAcceptThreshold ) {
@@ -174,24 +171,26 @@ class HammerSwipe {
         } else {
             this.removeClass(this.container, "will-accept-swipe");
         }
-        if (event.type === "panend" || event.type === "pancancel") {
-            if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold || Math.abs(event.velocityX) > this.flickVelocity)
+        const direction: Direction | undefined = currentPercentage < 0 ? "left" : currentPercentage > 0 ? "right" : undefined;
+        if ((event.type === "panend" || event.type === "pancancel") && direction) {
+            if ((Math.abs(currentPercentage) > this.swipeAcceptThreshold
+                || Math.abs(event.velocityX) > this.flickVelocity)
                 && event.type === "panend") {
-                const direction: Direction = currentPercentage < 0 ? "left" : "right";
-                this.out(direction);
+                this.swipeAnimation(direction);
+                this.afterSwipeAnimation(direction);
                 return;
             }
             currentPercentage = 0;
             animate = true;
         }
-        this.show(currentPercentage, animate);
+        this.show(currentPercentage, direction, animate);
     }
 
-    private show(currentPercentage = 0, animate?: boolean) {
+    private show(currentPercentage = 0, direction: Direction | undefined, animate?: boolean) {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
 
-        this.updateBackground(pos);
+        this.updateBackground(direction);
 
         if (animate) {
             this.addClass(this.container, "animate");
@@ -200,9 +199,10 @@ class HammerSwipe {
             this.addClass(this.container, pos < 0 ? "swiping-left" : "swiping-right");
         }
 
-        if (currentPercentage !== 0) {
-            this.addClass(this.container, `swiping-${pos < 0 ? "left" : "right"}`);
-            this.removeClass(this.container, `swiping-${pos < 0 ? "right" : "left"}`);
+        if (direction) {
+            const oppositeDirection = direction === "left" ? "right" : "left";
+            this.addClass(this.container, `swiping-${direction}`);
+            this.removeClass(this.container, `swiping-${oppositeDirection}`);
         } else {
             this.removeClass(this.container, "swiping-right");
             this.removeClass(this.container, "swiping-left");
@@ -214,69 +214,56 @@ class HammerSwipe {
         });
     }
 
-    private updateBackground(pos: number) {
-        this.addClass(this.afterElementRight, "hidden");
-        this.addClass(this.afterElementLeft, "hidden");
-        if (pos < 0) {
-            if (this.backElementRight !== this.backElementLeft) {
-                this.addClass(this.backElementRight, "hidden");
+    private updateBackground(direction: Direction | undefined) {
+        this.addClass(this.afterElement.right, "hidden");
+        this.addClass(this.afterElement.left, "hidden");
+        if (direction) {
+            const oppositeDirection = direction === "left" ? "right" : "left";
+            if (this.backElement.right !== this.backElement.left) {
+                this.addClass(this.backElement[oppositeDirection], "hidden");
             }
-            this.removeClass(this.backElementLeft, "hidden");
-        } else if (pos > 0) {
-            this.removeClass(this.backElementRight, "hidden");
-            if (this.backElementRight !== this.backElementLeft) {
-                this.addClass(this.backElementLeft, "hidden");
-            }
+            this.removeClass(this.backElement[direction], "hidden");
         }
     }
 
-    private addClass(element: HTMLElement, className: string) {
+    private addClass(element: HTMLElement | undefined, className: string) {
         if (element) {
             element.classList.add(className);
         }
     }
 
-    private removeClass(element: HTMLElement, className: string) {
+    private removeClass(element: HTMLElement | undefined, className: string) {
         if (element && element.classList) {
             element.classList.remove(className);
         }
     }
 
-    private out(direction: Direction) {
+    private swipeAnimation(direction: Direction) {
         let pos;
-        if (this.options.afterSwipeActionLeft === "button" && direction === "left") {
-            pos = -this.containerSize + this.borderLeft;
-            this.addRestoreEvent(this.options.parentElement);
-        } else if (this.options.afterSwipeActionRight === "button" && direction === "right") {
-            pos = this.borderRight;
-            this.addRestoreEvent(this.options.parentElement);
+        if (this.options.afterSwipeAction[direction] === "button") {
+            pos = this.border[direction];
         } else {
             pos = direction === "left" ? -this.containerSize : this.containerSize;
         }
         this.addClass(this.container, "animate");
         domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;
-        if (this.options.afterSwipeActionLeft === "none" && direction === "left") {
+        if (this.options.afterSwipeAction[direction] === "none"
+            || this.options.afterSwipeAction[direction] === "button") {
             this.addRestoreEvent(this.options.parentElement);
         }
-        if (this.options.afterSwipeActionRight === "none" && direction === "right") {
-            this.addRestoreEvent(this.options.parentElement);
-        }
-        this.afterSwipe(direction);
     }
 
     private addRestoreEvent(element: HTMLElement) {
-        if (element) {
-            const restore = (event: MouseEvent) => {
-                if (!this.inElement(element, event.target as HTMLElement, [ "mx-button", "mx-link", "clickable" ])) {
-                    event.stopPropagation();
-                }
-                this.resetElements();
-                this.swipedOut = false;
-                element.removeEventListener("click", restore, true);
-            };
-            element.addEventListener("click", restore, true);
-        }
+        const restore = (event: MouseEvent) => {
+            if (!this.inElement(element, event.target as HTMLElement, [ "mx-button", "mx-link", "clickable" ])) {
+                event.stopPropagation();
+            }
+            this.resetElements();
+            this.swipedOut = false;
+            element.removeEventListener("click", restore, true);
+        };
+        element.addEventListener("click", restore, true);
     }
 
     private inElement(elementContainer: HTMLElement, element: HTMLElement, classNames: string[]): boolean {
@@ -293,32 +280,23 @@ class HammerSwipe {
         }
     }
 
-    private afterSwipe(direction: Direction) {
-        if (this.options.afterSwipeActionRight === "back" && direction === "right" ||
-            this.options.afterSwipeActionLeft === "back" && direction === "left") {
+    private afterSwipeAnimation(direction: Direction) {
+        if (this.options.afterSwipeAction[direction] === "back") {
             this.resetElements(true);
             this.swipedOut = false;
             this.options.callback(this.container, direction);
-        } else if (this.options.afterSwipeActionRight === "reset" && direction === "right" ||
-            this.options.afterSwipeActionLeft === "reset" && direction === "left") {
+        } else if (this.options.afterSwipeAction[direction] === "reset") {
             setTimeout(() => {
                 this.resetElements(false);
                 this.swipedOut = false;
                 this.options.callback(this.container, direction);
             }, this.options.callbackDelay);
-        } else if (this.options.afterSwipeActionRight === "hide" && direction === "right" ||
-            this.options.afterSwipeActionLeft === "hide" && direction === "left") {
-            if (direction === "left") {
-                if (this.afterElementRight !== this.afterElementLeft) {
-                    this.addClass(this.afterElementRight, "hidden");
-                }
-                this.removeClass(this.afterElementLeft, "hidden");
-            } else {
-                this.removeClass(this.afterElementRight, "hidden");
-                if (this.afterElementRight !== this.afterElementLeft) {
-                    this.addClass(this.afterElementLeft, "hidden");
-                }
+        } else if (this.options.afterSwipeAction[direction] === "hide") {
+            const oppositeDirection = direction === "left" ? "right" : "left";
+            if (this.afterElement.right !== this.afterElement.left) {
+                this.addClass(this.afterElement[oppositeDirection], "hidden");
             }
+            this.removeClass(this.afterElement[direction], "hidden");
             setTimeout(() => {
                 this.addClass(this.container, "animate");
                 domStyle.set(this.container, { height: 0 });
@@ -329,34 +307,19 @@ class HammerSwipe {
                     this.options.callback(this.container, direction);
                 }, this.removeItemDelay);
             }, this.options.callbackDelay);
-        } else if (this.options.afterSwipeActionRight === "none" && direction === "right" ||
-            this.options.afterSwipeActionLeft === "none" && direction === "left") {
+        } else if (this.options.afterSwipeAction[direction] === "none") {
             this.addClass(this.foreElement, "swiped-out");
         }
     }
 
-    private registerExtraEvents() {
-        if (this.options.afterSwipeActionRight === "hide") {
+    private registerExtraEvents(direction: Direction) {
+        if (this.options.afterSwipeAction[direction] === "hide") {
             this.foreElement.addEventListener("transitionend", () => {
                 if (this.swipedOut) {
                     domStyle.set(this.container, {
                         height: this.container.offsetHeight + "px"
                     });
-                    if (this.backElementRight) {
-                        this.addClass(this.backElementRight, "hide");
-                    }
-                }
-            });
-        }
-        if (this.options.afterSwipeActionLeft === "hide") {
-            this.foreElement.addEventListener("transitionend", () => {
-                if (this.swipedOut) {
-                    domStyle.set(this.container, {
-                        height: this.container.offsetHeight + "px"
-                    });
-                    if (this.backElementLeft) {
-                        this.addClass(this.backElementLeft, "hide");
-                    }
+                    this.addClass(this.backElement[direction], "hide");
                 }
             });
         }

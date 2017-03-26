@@ -22,7 +22,7 @@
         <property key="actionTriggerDelay" type="integer" required="true" defaultValue="800">
             <caption>Action delay</caption>
             <category>General</category>
-            <description>Number of microseconds after swiping to wait before triggering the action, to finish the animation</description>
+            <description>Number of microseconds after swiping to wait before triggering the action, to finish the animation, except for after swipe Move back</description>
         </property>
         <property key="onSwipeActionRight" type="enumeration" required="true" defaultValue="disabled">
             <caption>On swipe right</caption>

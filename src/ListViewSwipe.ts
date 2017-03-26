@@ -70,12 +70,12 @@ class ListViewSwipe extends WidgetBase {
 
             if (direction) {
                 const swipeOptions: SwipeOptions = {
-                    afterSwipeActionLeft: this.afterSwipeActionLeft,
-                    afterSwipeActionRight: this.afterSwipeActionRight,
-                    afterSwipeBackgroundNameLeft: this.afterSwipeBackgroundNameLeft,
-                    afterSwipeBackgroundNameRight: this.afterSwipeBackgroundNameRight,
-                    backgroundNameLeft: this.backgroundNameLeft,
-                    backgroundNameRight: this.backgroundNameRight,
+                    afterSwipeAction: { left: this.afterSwipeActionLeft, right: this.afterSwipeActionRight },
+                    afterSwipeBackgroundName: {
+                        left: this.afterSwipeBackgroundNameLeft,
+                        right: this.afterSwipeBackgroundNameRight
+                    },
+                    backgroundName: { left: this.backgroundNameLeft, right: this.backgroundNameRight },
                     callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
                     callbackDelay: this.actionTriggerDelay,
                     foregroundName: this.foregroundName,
@@ -86,7 +86,8 @@ class ListViewSwipe extends WidgetBase {
 
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
-                        Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item:not(.swipe-connected)"), (container: HTMLElement) => {
+                        const listItems = this.targetNode.querySelectorAll(".mx-listview-item:not(.swipe-connected)");
+                        Hammer.each(listItems, (container: HTMLElement) => {
                             container.classList.add("swipe-connected");
                             this.hammers.push(new HammerSwipe(container, swipeOptions));
                         }, this);
