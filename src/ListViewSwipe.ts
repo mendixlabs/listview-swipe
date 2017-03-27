@@ -8,6 +8,7 @@ import * as domConstruct from "dojo/dom-construct";
 
 import * as Hammer from "hammerjs";
 import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./HammerSwipe";
+import { ConfigError } from "./ConfigError";
 
 import "./ui/ListViewSwipe.css";
 
@@ -23,7 +24,6 @@ interface ListView extends mxui.widget._WidgetBase {
 class ListViewSwipe extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
-    foregroundName: string;
     transparentOnSwipe: boolean;
     itemEntity: string;
     actionTriggerDelay: number;
@@ -45,10 +45,17 @@ class ListViewSwipe extends WidgetBase {
     private targetNode: HTMLElement;
     private contextObject: mendix.lib.MxObject;
     private hammers: HammerSwipe[];
+    private onSwipePage: { left: string, right: string };
+    private onSwipeMicroflow: { left: string, right: string };
+    private onSwipeAction: { left: OnSwipeAction, right: OnSwipeAction };
 
     postCreate() {
         this.hammers = [];
         this.swipeClass = "widget-listview-swipe";
+        this.onSwipePage = { left: this.onSwipePageLeft, right: this.onSwipePageRight };
+        this.onSwipeMicroflow = { left: this.onSwipeMicroflowLeft, right: this.onSwipeMicroflowRight };
+        this.onSwipeAction = { left: this.onSwipeActionLeft, right: this.onSwipeActionRight };
+
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
             this.targetWidget = registry.byNode(this.targetNode);
@@ -78,7 +85,6 @@ class ListViewSwipe extends WidgetBase {
                     backgroundName: { left: this.backgroundNameLeft, right: this.backgroundNameRight },
                     callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
                     callbackDelay: this.actionTriggerDelay,
-                    foregroundName: this.foregroundName,
                     parentElement: this.mxform.domNode,
                     swipeDirection: direction,
                     transparentOnSwipe: this.transparentOnSwipe
@@ -92,7 +98,8 @@ class ListViewSwipe extends WidgetBase {
                             this.hammers.push(new HammerSwipe(container, swipeOptions));
                         }, this);
                     } catch (error) {
-                        this.showConfigError(error.message);
+                        const codeException = !(error instanceof ConfigError);
+                        this.showError(error.message, codeException);
                     }
                 });
             }
@@ -102,9 +109,8 @@ class ListViewSwipe extends WidgetBase {
     }
 
     uninitialize(): boolean {
-        this.hammers.forEach((hammer) => {
-            hammer.destroy();
-        });
+        this.hammers.forEach(hammer => hammer.destroy());
+
         return true;
     }
 
@@ -132,31 +138,31 @@ class ListViewSwipe extends WidgetBase {
 
     private validateConfig(): boolean {
         if (!this.targetNode) {
-            this.showConfigError(`unable to find 'Target listview' named '${this.targetName}'`);
+            this.showError(`unable to find 'Target listview' named '${this.targetName}'`);
             return false;
         }
         if (this.isDescendant(this.targetNode, this.domNode)) {
-            this.showConfigError("The widget should not be placed inside the list view, move it just below");
+            this.showError("The widget should not be placed inside the list view, move it just below");
             return false;
         }
         this.targetWidget = registry.byNode(this.targetNode);
         if (!this.targetWidget) {
-            this.showConfigError(`list view should be placed below the list view, in the same context`);
+            this.showError(`list view should be placed below the list view, in the same context`);
             return false;
         }
         if (this.targetWidget.declaredClass !== "mxui.widget.ListView") {
-            this.showConfigError(`'Target listview' name '${this.targetName}' is not of the type listview`);
+            this.showError(`'Target listview' name '${this.targetName}' is not of the type listview`);
             return false;
         }
         if (this.targetWidget._renderData === undefined
             || this.targetWidget.datasource === undefined
             || this.targetWidget.datasource.path === undefined) {
-                this.showConfigError("this Mendix version is not compatible");
+                this.showError("this Mendix version is not compatible");
                 window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
                 return false;
         }
         if (this.targetWidget.connectListviewSwipeWidget) {
-            this.showConfigError(`list view '${this.targetName}' can only have on swipe widget,
+            this.showError(`list view '${this.targetName}' can only have on swipe widget,
             it is already connected to ${this.targetWidget.connectListviewSwipeWidget}`);
             return false;
         }
@@ -165,48 +171,49 @@ class ListViewSwipe extends WidgetBase {
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (this.itemEntity && this.itemEntity !== listEntity) {
-            this.showConfigError(`'Item entity' ${this.itemEntity} does not 
+            this.showError(`'Item entity' ${this.itemEntity} does not 
             match the listview entity ${listEntity}`);
             return false;
         }
         this.itemEntity = listEntity;
         if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
-            this.showConfigError("no 'Microflow right' is selected");
+            this.showError("no 'Microflow right' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "callMicroflow" && !this.onSwipeMicroflowLeft) {
-            this.showConfigError("no 'Microflow left' is selected");
+            this.showError("no 'Microflow left' is selected");
             return false;
         }
         if (this.onSwipeActionRight === "showPage" && !this.onSwipePageRight) {
-            this.showConfigError("no 'Open page right' is selected");
+            this.showError("no 'Open page right' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "showPage" && !this.onSwipePageLeft) {
-            this.showConfigError("no 'Open page left' is selected");
+            this.showError("no 'Open page left' is selected");
             return false;
         }
         if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
-            this.showConfigError("no 'On swipe' action left or right selected");
+            this.showError("no 'On swipe' action left or right selected");
             return false;
         }
         if (this.afterSwipeActionRight === "button" && this.backgroundNameRight === "") {
-            this.showConfigError("no 'Swipe container right' name provided." +
+            this.showError("no 'Swipe container right' name provided." +
                 "This is required when 'After swipe right' is set to stick to button");
             return false;
         }
         if (this.afterSwipeActionLeft === "button" && this.backgroundNameLeft === "") {
-            this.showConfigError("no 'Swipe container left' name provided." +
+            this.showError("no 'Swipe container left' name provided." +
                 "This is required when 'After swipe left' is set to Stick to button");
             return false;
         }
         return true;
     }
 
-    private showConfigError(message: string) {
+    private showError(message: string, codeException = false) {
         // Place the message inside the list view, only when it is rendered, else the message is removed.
         const node = this.targetNode && this.targetNode.hasChildNodes() ? this.targetNode : this.domNode;
-        domConstruct.place(`<div class='alert alert-danger'>List view swipe configuration error:<br>
+        const type = codeException ? "List view swipe code exception:" : "List view swipe configuration error:";
+        domConstruct.place(`<div class='alert alert-danger'>${type}<br>
         - ${message}</div>`, node, "first");
         window.logger.error(this.id, `configuration error: ${message}`);
     }
@@ -219,35 +226,19 @@ class ListViewSwipe extends WidgetBase {
     }
 
     private callMicroflow(direction: Direction, context: mendix.lib.MxContext) {
-        let microflow = "";
-        if (direction === "right" && this.onSwipeActionRight === "callMicroflow") {
-            microflow = this.onSwipeMicroflowRight;
-        } else if (direction === "left" && this.onSwipeActionLeft === "callMicroflow") {
-            microflow = this.onSwipeMicroflowLeft;
-        }
-
-        if (microflow) {
-            window.mx.ui.action(microflow, {
+        if (this.onSwipeAction[direction] === "callMicroflow" && this.onSwipeMicroflow[direction]) {
+            window.mx.ui.action(this.onSwipeMicroflow[direction], {
                 context,
-                error: error =>
-                    window.mx.ui.error(`An error occurred while executing action ${microflow}: ${error.message}`, true)
+                error: error => window.mx.ui.error(`An error occurred while executing action ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
             });
         }
     }
 
     private showPage(direction: Direction, context: mendix.lib.MxContext) {
-        let page = "";
-        if (direction === "right" && this.onSwipeActionRight === "showPage") {
-            page = this.onSwipePageRight;
-        } else if (direction === "left" && this.onSwipeActionLeft === "showPage") {
-            page = this.onSwipePageLeft;
-        }
-
-        if (page) {
-            window.mx.ui.openForm(page, {
+        if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
+            window.mx.ui.openForm(this.onSwipePage[direction], {
                 context,
-                error: error =>
-                    window.mx.ui.error(`An error occurred while opening form ${page} : ${error.message}`)
+                error: error => window.mx.ui.error(`An error occurred while opening form ${this.onSwipePage[direction]} : ${error.message}`)
             });
         }
     }

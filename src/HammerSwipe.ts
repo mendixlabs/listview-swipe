@@ -1,6 +1,7 @@
 import * as Hammer from "hammerjs";
 import * as domStyle from "dojo/dom-style";
 import { Utils } from "./Utils";
+import { ConfigError } from "./ConfigError";
 
 interface SwipeOptions {
     afterSwipeAction: {left: AfterSwipeAction, right: AfterSwipeAction};
@@ -8,15 +9,9 @@ interface SwipeOptions {
     backgroundName: {left: string, right: string};
     callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
-    foregroundName: string;
     parentElement: HTMLElement;
     swipeDirection: Direction | "horizontal";
     transparentOnSwipe?: boolean;
-}
-
-interface AfterSwipeOptions {
-    elementName: string;
-    action: AfterSwipeAction;
 }
 
 type Direction = "right" | "left";
@@ -24,25 +19,23 @@ type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 
 class HammerSwipe {
     private container: HTMLElement;
-    private foreElement: HTMLElement;
     private containerSize: number;
     private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOptions;
     private isSwiped = false;
     private isScrolling = false;
+    private foreElement: HTMLElement;
     private backElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
     private afterElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
-    private border = { left: 0, right: 0 };
-    private borderRight = 0;
-    private borderLeft = 0;
+    private border: { left: number, right: number };
     private swipeDirection: number;
     private thresholdCompensation = 0;
-    private thresholdAcceptSwipe = { left: 30, right: 30 };
+    private thresholdAcceptSwipe: { left: number, right: number };
     // Internal settings
     readonly delayRemoveItem = 400; // Milliseconds
     readonly thresholdScroll = 60; // Pixels.
-    //readonly thresholdAcceptSwipe = 30; // Percentage. //TODO stick to button
+    readonly defaultThresholdAcceptSwipe = 30; // Percentage.
     readonly thresholdMove = 25; // Pixels
     readonly thresholdVelocity = 1.2; // Pixels per milliseconds
 
@@ -51,29 +44,43 @@ class HammerSwipe {
         this.options = options;
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
-        this.swipeDirection = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
 
+        this.setupElements(options);
+        this.border = {
+            left: -this.containerSize + this.findButtonBorder("left"),
+            right: this.findButtonBorder("right")
+        };
+        this.thresholdAcceptSwipe = {
+            left: this.calculateThresholdAcceptSwipe("left"),
+            right: this.calculateThresholdAcceptSwipe("right")
+        };
+        this.addHideTransitionEvent("left");
+        this.addHideTransitionEvent("right");
+
+        const direction = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({
-            direction: this.swipeDirection,
+            direction,
             threshold: this.thresholdMove
         }));
         this.hammer.on("panstart", event => this.onPanStart(event));
         this.hammer.on("panmove", event => this.onPanMove(event));
         this.hammer.on("panend pancancel", event => this.onPanEnd(event));
-
-        this.setupPanes(options);
-        this.border.left = -this.containerSize + this.findButtonBorder("left");
-        this.border.right = this.findButtonBorder("right");
-        this.addHideTransitionEvent("left");
-        this.addHideTransitionEvent("right");
     }
 
     destroy() {
         this.hammer.destroy();
     }
 
-    private setupPanes(options: SwipeOptions) {
+    private calculateThresholdAcceptSwipe(direction: Direction): number {
+        let thresholdAcceptSwipe = this.defaultThresholdAcceptSwipe;
+        if (this.options.afterSwipeAction[direction] === "button") {
+            thresholdAcceptSwipe = Math.abs(this.border[direction] / this.containerSize * 100);
+        }
+        return thresholdAcceptSwipe;
+    }
+
+    private setupElements(options: SwipeOptions) {
         // Foreground is the mx-dataview-content
         this.foreElement = this.container.firstChild.firstChild as HTMLElement;
         Utils.addClass(this.foreElement, "swipe-foreground");
@@ -94,17 +101,17 @@ class HammerSwipe {
         if (backElement && this.options.afterSwipeAction[direction] === "button") {
             const buttons = backElement.querySelectorAll(".mx-button, .mx-link, .clickable");
             for (let i = 0; i < buttons.length; i++) {
-                const el = buttons[i] as HTMLElement;
-                let position = el.getBoundingClientRect().left;
+                const button = buttons[i] as HTMLElement;
+                let position = button.getBoundingClientRect().left;
                 if (direction === "left") {
                     border = border ? border > position ? position : border : position;
                 } else {
-                    position += el.offsetWidth;
+                    position += button.offsetWidth;
                     border = border ? border < position ? position : border : position;
                 }
             }
             if (buttons.length === 0) {
-                throw new Error(`no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
+                throw new ConfigError(`no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
                     `container. This is required when after swipe ${direction} is set to Stick to button.`);
             }
         }
@@ -207,10 +214,10 @@ class HammerSwipe {
             Utils.removeClass(this.container, "swiping-left");
         }
 
-        const pos = (this.containerSize / 100) * percentage;
+        const position = (this.containerSize / 100) * percentage;
         domStyle.set(this.foreElement, {
             opacity: this.options.transparentOnSwipe ? 1 - Math.abs(percentage / 100) : 1,
-            transform: "translate3d(" + pos + "px, 0, 0)"
+            transform: "translate3d(" + position + "px, 0, 0)"
         });
     }
 
@@ -224,11 +231,11 @@ class HammerSwipe {
 
     private swipeAnimation(direction: Direction) {
         Utils.addClass(this.container, "animate");
-        let pos = direction === "left" ? -this.containerSize : this.containerSize;;
+        let position = direction === "left" ? -this.containerSize : this.containerSize;
         if (this.options.afterSwipeAction[direction] === "button") {
-            pos = this.border[direction];
+            position = this.border[direction];
         }
-        domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
+        domStyle.set(this.foreElement, { transform: "translate3d(" + position + "px, 0, 0)" });
         if (this.options.afterSwipeAction[direction] === "none"
             || this.options.afterSwipeAction[direction] === "button") {
             this.addRestoreEvent(this.options.parentElement);
