@@ -38,22 +38,16 @@ class HammerSwipe {
     readonly defaultThresholdAcceptSwipe = 30; // Percentage.
     readonly thresholdMove = 25; // Pixels
     readonly thresholdVelocity = 1.2; // Pixels per milliseconds
+    readonly buttonClasses = [ "mx-button", "mx-link", "clickable" ];
 
     constructor(container: HTMLElement, options: SwipeOptions) {
         this.container = container;
         this.options = options;
         this.containerClass = this.container.className;
-        this.containerSize = this.container.offsetWidth;
 
         this.setupElements(options);
-        this.border = {
-            left: -this.containerSize + this.findButtonBorder("left"),
-            right: this.findButtonBorder("right")
-        };
-        this.thresholdAcceptSwipe = {
-            left: this.calculateThresholdAcceptSwipe("left"),
-            right: this.calculateThresholdAcceptSwipe("right")
-        };
+        this.checkButtons("left");
+        this.checkButtons("right");
         this.addHideTransitionEvent("left");
         this.addHideTransitionEvent("right");
 
@@ -72,14 +66,6 @@ class HammerSwipe {
         this.hammer.destroy();
     }
 
-    private calculateThresholdAcceptSwipe(direction: Direction): number {
-        let thresholdAcceptSwipe = this.defaultThresholdAcceptSwipe;
-        if (this.options.afterSwipeAction[direction] === "button") {
-            thresholdAcceptSwipe = Math.abs(this.border[direction] / this.containerSize * 100);
-        }
-        return thresholdAcceptSwipe;
-    }
-
     private setupElements(options: SwipeOptions) {
         // Foreground is the mx-dataview-content
         this.foreElement = this.container.firstChild.firstChild as HTMLElement;
@@ -95,27 +81,15 @@ class HammerSwipe {
         };
     }
 
-    private findButtonBorder(direction: Direction): number {
-        let border = 0;
+    private checkButtons(direction: Direction) {
         const backElement = this.backElement[direction];
         if (backElement && this.options.afterSwipeAction[direction] === "button") {
-            const buttons = backElement.querySelectorAll(".mx-button, .mx-link, .clickable");
-            for (let i = 0; i < buttons.length; i++) {
-                const button = buttons[i] as HTMLElement;
-                let position = button.getBoundingClientRect().left;
-                if (direction === "left") {
-                    border = border ? border > position ? position : border : position;
-                } else {
-                    position += button.offsetWidth;
-                    border = border ? border < position ? position : border : position;
-                }
-            }
+            const buttons = backElement.querySelectorAll("." + this.buttonClasses.join(", ."));
             if (buttons.length === 0) {
                 throw new ConfigError(`no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
                     `container. This is required when after swipe ${direction} is set to Stick to button.`);
             }
         }
-        return border;
     }
 
     private findElement(name: string, displayName: string, addClass?: string): HTMLElement | undefined {
@@ -128,7 +102,7 @@ class HammerSwipe {
             this.foreElement.parentElement.appendChild(element);
         }
         if (name && !element) {
-            throw new Error(`no '${displayName}' found named ${name}`);
+            throw new ConfigError(`no '${displayName}' found named ${name}`);
         }
         return element;
     }
@@ -139,6 +113,7 @@ class HammerSwipe {
             this.resetElements();
             return;
         }
+        this.sizeCalculations();
         this.isScrolling = false;
         this.thresholdCompensation = event.deltaX;
     }
@@ -179,6 +154,46 @@ class HammerSwipe {
         } else {
             this.show(0, true);
         }
+    }
+
+    private sizeCalculations() {
+        this.containerSize = this.container.offsetWidth;
+        this.border = {
+            left: -this.containerSize + this.findButtonBorder("left"),
+            right: this.findButtonBorder("right")
+        };
+        this.thresholdAcceptSwipe = {
+            left: this.calculateThresholdAcceptSwipe("left"),
+            right: this.calculateThresholdAcceptSwipe("right")
+        };
+    }
+
+    private findButtonBorder(direction: Direction): number {
+        Utils.removeClass(this.backElement[direction], "hidden");
+        let border = 0;
+        const backElement = this.backElement[direction];
+        if (backElement && this.options.afterSwipeAction[direction] === "button") {
+            const buttons = backElement.querySelectorAll("." + this.buttonClasses.join(", ."));
+            for (let i = 0; i < buttons.length; i++) {
+                const button = buttons[i] as HTMLElement;
+                let position = button.getBoundingClientRect().left;
+                if (direction === "left") {
+                    border = border ? border > position ? position : border : position;
+                } else {
+                    position += button.offsetWidth;
+                    border = border ? border < position ? position : border : position;
+                }
+            }
+        }
+        return border;
+    }
+
+    private calculateThresholdAcceptSwipe(direction: Direction): number {
+        let thresholdAcceptSwipe = this.defaultThresholdAcceptSwipe;
+        if (this.options.afterSwipeAction[direction] === "button") {
+            thresholdAcceptSwipe = Math.abs(this.border[direction] / this.containerSize * 100);
+        }
+        return thresholdAcceptSwipe;
     }
 
     private resetElements(animate = true) {
