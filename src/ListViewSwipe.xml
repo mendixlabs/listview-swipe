@@ -5,9 +5,9 @@
     <icon/>
     <properties>
         <property key="targetName" type="string" required="true">
-            <caption>Target listview</caption>
+            <caption>Target list view</caption>
             <category>General</category>
-            <description>Name of the listview, place this widget directly below the list view</description>
+            <description>Name of the list view. Place this widget directly below the list view</description>
         </property>
         <property key="transparentOnSwipe" type="boolean" required="true" defaultValue="false">
             <caption>Transparent swipe</caption>
@@ -15,58 +15,14 @@
             <description>Make item gradually transparent while swiping</description>
         </property>
         <property key="itemEntity" type="entity" allowNonPersistableEntities="true" required="false">
-            <caption>Item entity</caption>
+            <caption>List view entity</caption>
             <category>General</category>
-            <description>Entity type of the list view, passed as context to the action</description>
+            <description>Entity type of the list view items, passed as context to the 'Open page' or 'Execute microflow' action</description>
         </property>
         <property key="actionTriggerDelay" type="integer" required="true" defaultValue="800">
             <caption>Action delay</caption>
             <category>General</category>
-            <description>Number of microseconds after swiping to wait before triggering the action, to finish the animation, except for after swipe Move back</description>
-        </property>
-        <property key="onSwipeActionRight" type="enumeration" required="true" defaultValue="disabled">
-            <caption>On swipe right</caption>
-            <category>Swipe to right</category>
-            <description>Action take on swipe</description>
-            <enumerationValues>
-                <enumerationValue key="disabled">Disabled</enumerationValue>
-                <enumerationValue key="doNothing">No action</enumerationValue>
-                <enumerationValue key="showPage">Show a page</enumerationValue>
-                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="onSwipeMicroflowRight" type="microflow" required="false" entityProperty="itemEntity">
-            <caption>Microflow right</caption>
-            <category>Swipe to right</category>
-            <description>Microflow to execute after swiping</description>
-            <returnType type="Void"/>
-        </property>
-        <property key="onSwipePageRight" type="form" required="false">
-            <caption>Open page right</caption>
-            <category>Swipe to right</category>
-            <description>The page to open after swiping, should contain a 'Item entity' data view</description>
-        </property>
-        <property key="backgroundNameRight" type="string" required="false">
-            <caption>Swipe container right</caption>
-            <category>Swipe to right</category>
-            <description>Optional name of the container shown as background during swiping, requires a foreground</description>
-        </property>
-        <property key="afterSwipeBackgroundNameRight" type="string" required="false">
-            <caption>Hide container right</caption>
-            <category>Swipe to right</category>
-            <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
-        </property>
-        <property key="afterSwipeActionRight" type="enumeration" required="true" defaultValue="hide">
-            <caption>After swipe right</caption>
-            <category>Swipe to right</category>
-            <description>Animate hiding the item or restore the item to the original position</description>
-            <enumerationValues>
-                <enumerationValue key="hide">Move out, hide</enumerationValue>
-                <enumerationValue key="reset">Move out, reset</enumerationValue>
-                <enumerationValue key="none">Move out</enumerationValue>
-                <enumerationValue key="back">Move back</enumerationValue>
-                <enumerationValue key="button">Stick to button</enumerationValue>
-            </enumerationValues>
+            <description>Wait number of microseconds after swiping before triggering the action. To let the animation finish, except for 'After swipe' 'Move back'</description>
         </property>
         <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
             <caption>On swipe left</caption>
@@ -79,31 +35,27 @@
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
             </enumerationValues>
         </property>
+        <property key="onSwipePageLeft" type="form" required="false">
+            <caption>Page left</caption>
+            <category>Swipe to left</category>
+            <description>Page to show after swiping, should contain a 'List view entity' data view. Only applicable for 'On swipe' 'Show a Page'</description>
+        </property>
         <property key="onSwipeMicroflowLeft" type="microflow" required="false" entityProperty="itemEntity">
             <caption>Microflow left</caption>
             <category>Swipe to left</category>
-            <description>Microflow to execute after swiping</description>
+            <description>Microflow to execute after swiping. Only applicable for 'On swipe' 'Call a microflow'</description>
             <returnType type="Void"/>
-        </property>
-        <property key="onSwipePageLeft" type="form" required="false">
-            <caption>Open page left</caption>
-            <category>Swipe to left</category>
-            <description>The page to open after swiping, should contain a 'Item entity' data view</description>
         </property>
         <property key="backgroundNameLeft" type="string" required="false">
             <caption>Swipe container left</caption>
             <category>Swipe to left</category>
-            <description>Optional name of the container shown as background during swiping, requires a foreground</description>
-        </property>
-        <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
-            <caption>Hide container left</caption>
-            <category>Swipe to left</category>
-            <description>Optional name of the container showing a message during hide animation, requires a foreground and after swipe hide</description>
+            <description>Optional, name of the container which shown as background during swiping</description>
         </property>
         <property key="afterSwipeActionLeft" type="enumeration" required="true" defaultValue="hide">
             <caption>After swipe left</caption>
             <category>Swipe to left</category>
-            <description>Animate hiding the item or restore the item to the original position</description>
+            <description>Animate effect after swipe:
+Continue the swipe movement 'out' of the list view. Animate 'hiding'' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item 'back'' to it original position. Show the background 'buttons' by sticking to their side.</description>
             <enumerationValues>
                 <enumerationValue key="hide">Move out, hide</enumerationValue>
                 <enumerationValue key="reset">Move out, reset</enumerationValue>
@@ -111,6 +63,56 @@
                 <enumerationValue key="back">Move back</enumerationValue>
                 <enumerationValue key="button">Stick to button</enumerationValue>
             </enumerationValues>
+        </property>
+        <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
+            <caption>Hide container left</caption>
+            <category>Swipe to left</category>
+            <description>Optional, name of the container which shows a message during hide animation. Only applicable when 'After swipe' is 'Move out, hide'</description>
+        </property>
+        <property key="onSwipeActionRight" type="enumeration" required="true" defaultValue="disabled">
+            <caption>On swipe right</caption>
+            <category>Swipe to right</category>
+            <description>Action take on swipe</description>
+            <enumerationValues>
+                <enumerationValue key="disabled">Disabled</enumerationValue>
+                <enumerationValue key="doNothing">No action</enumerationValue>
+                <enumerationValue key="showPage">Show a page</enumerationValue>
+                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="onSwipePageRight" type="form" required="false">
+            <caption>Page right</caption>
+            <category>Swipe to right</category>
+            <description>Page to show after swiping, should contain a 'List view entity' data view. Only applicable for 'On swipe' 'Show a Page'</description>
+        </property>
+        <property key="onSwipeMicroflowRight" type="microflow" required="false" entityProperty="itemEntity">
+            <caption>Microflow right</caption>
+            <category>Swipe to right</category>
+            <description>Microflow to execute after swiping</description>
+            <returnType type="Void"/>
+        </property>
+        <property key="backgroundNameRight" type="string" required="false">
+            <caption>Swipe container right</caption>
+            <category>Swipe to right</category>
+            <description>Optional, name of the container which shown as background during swiping</description>
+        </property>
+        <property key="afterSwipeActionRight" type="enumeration" required="true" defaultValue="hide">
+            <caption>After swipe right</caption>
+            <category>Swipe to right</category>
+            <description>Animate effect after swipe:
+Continue the swipe movement 'out' of the list view. Animate 'hiding'' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item 'back'' to it original position. Show the background 'buttons' by sticking to their side.</description>
+            <enumerationValues>
+                <enumerationValue key="hide">Move out, hide</enumerationValue>
+                <enumerationValue key="reset">Move out, reset</enumerationValue>
+                <enumerationValue key="none">Move out</enumerationValue>
+                <enumerationValue key="back">Move back</enumerationValue>
+                <enumerationValue key="button">Stick to button</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="afterSwipeBackgroundNameRight" type="string" required="false">
+            <caption>Hide container right</caption>
+            <category>Swipe to right</category>
+            <description>Optional, name of the container which shows a message during hide animation. Only applicable when 'After swipe' is 'Move out, hide'</description>
         </property>
     </properties>
 </widget>

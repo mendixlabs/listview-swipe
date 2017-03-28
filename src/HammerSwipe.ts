@@ -101,7 +101,7 @@ class HammerSwipe {
             this.foreElement.parentElement.appendChild(element);
         }
         if (name && !element) {
-            throw new ConfigError(`no '${displayName}' found named ${name}`);
+            throw new ConfigError(`no '${displayName}' found named ${name}. It should be placed inside the list view`);
         }
         return element;
     }
