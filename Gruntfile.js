@@ -28,7 +28,7 @@ module.exports = function (grunt) {
         compress: {
             dist: {
                 options: {
-                    archive: "./dist/" + pkg.version + "/" + pkg.name + ".mpk",
+                    archive: "./dist/" + pkg.version + "/" + pkg.widgetName + ".mpk",
                     mode: "zip"
                 },
                 files: [ {
@@ -54,7 +54,7 @@ module.exports = function (grunt) {
                 files: [ {
                     dest: "./dist/MxTestProject/widgets",
                     cwd: "./dist/" + pkg.version + "/",
-                    src: [ pkg.name + ".mpk" ],
+                    src: [ pkg.widgetName + ".mpk" ],
                     expand: true
                 } ]
             },
@@ -72,10 +72,10 @@ module.exports = function (grunt) {
 
         clean: {
             build: [
-                "./dist/" + pkg.version + "/" + pkg.name + "/*",
+                "./dist/" + pkg.version + "/" + pkg.widgetName + "/*",
                 "./dist/tmp/**/*",
-                "./dist/MxTestProject/deployment/web/widgets/" + pkg.name + "/*",
-                "./dist/MxTestProject/widgets/" + pkg.name + ".mpk"
+                "./dist/MxTestProject/deployment/web/widgets/" + pkg.widgetName + "/*",
+                "./dist/MxTestProject/widgets/" + pkg.widgetName + ".mpk"
             ]
         },
 

@@ -1,5 +1,6 @@
 {
   "name": "listview-swipe",
+  "widgetName": "ListviewSwipe",
   "version": "0.1.0",
   "description": "Enable swipe action on a list view",
   "copyright": "Flock of Birds",
