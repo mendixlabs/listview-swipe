@@ -17,7 +17,7 @@ type OnSwipeAction = "disabled" | "doNothing" | "showPage" | "callMicroflow";
 interface ListView extends mxui.widget._WidgetBase {
     datasource: { path: string };
     _renderData: () => void;
-    // Custom property to check single connected widget to a listview, preventing copy past mistakes
+    // Custom property to check single connected widget to a list view, preventing copy past mistakes
     connectListviewSwipeWidget: string;
 }
 
@@ -27,18 +27,18 @@ class ListViewSwipe extends WidgetBase {
     transparentOnSwipe: boolean;
     itemEntity: string;
     actionTriggerDelay: number;
-    onSwipeActionRight: OnSwipeAction;
     onSwipeActionLeft: OnSwipeAction;
+    onSwipeActionRight: OnSwipeAction;
     onSwipeMicroflowLeft: string;
     onSwipeMicroflowRight: string;
     onSwipePageLeft: string;
     onSwipePageRight: string;
-    afterSwipeActionRight: AfterSwipeAction;
     afterSwipeActionLeft: AfterSwipeAction;
-    backgroundNameRight: string;
+    afterSwipeActionRight: AfterSwipeAction;
     backgroundNameLeft: string;
-    afterSwipeBackgroundNameRight: string;
+    backgroundNameRight: string;
     afterSwipeBackgroundNameLeft: string;
+    afterSwipeBackgroundNameRight: string;
 
     private swipeClass: string;
     private targetWidget: ListView;
@@ -48,6 +48,8 @@ class ListViewSwipe extends WidgetBase {
     private onSwipePage: { left: string, right: string };
     private onSwipeMicroflow: { left: string, right: string };
     private onSwipeAction: { left: OnSwipeAction, right: OnSwipeAction };
+    private afterSwipeAction: { left: AfterSwipeAction, right: AfterSwipeAction };
+    private backgroundName: { left: string, right: string };
 
     postCreate() {
         this.hammers = [];
@@ -55,7 +57,8 @@ class ListViewSwipe extends WidgetBase {
         this.onSwipePage = { left: this.onSwipePageLeft, right: this.onSwipePageRight };
         this.onSwipeMicroflow = { left: this.onSwipeMicroflowLeft, right: this.onSwipeMicroflowRight };
         this.onSwipeAction = { left: this.onSwipeActionLeft, right: this.onSwipeActionRight };
-
+        this.afterSwipeAction = { left: this.afterSwipeActionRight, right: this.afterSwipeActionLeft };
+        this.backgroundName = { left: this.backgroundNameLeft, right: this.backgroundNameRight }
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
             this.targetWidget = registry.byNode(this.targetNode);
@@ -66,7 +69,7 @@ class ListViewSwipe extends WidgetBase {
     update(contextObject: mendix.lib.MxObject, callback?: () => void) {
         if (this.targetWidget) {
             this.contextObject = contextObject;
-            let direction: Direction | "horizontal";
+            let direction: Direction | "horizontal" | undefined;
             if (this.onSwipeActionRight !== "disabled" && this.onSwipeActionLeft !== "disabled") {
                 direction = "horizontal";
             } else if (this.onSwipeActionRight !== "disabled") {
@@ -116,7 +119,7 @@ class ListViewSwipe extends WidgetBase {
 
     private findTargetNode(name: string): HTMLElement {
         let queryNode = this.domNode.parentNode as Element;
-        let targetNode: HTMLElement;
+        let targetNode: HTMLElement | null = null;
         while (!targetNode) {
             targetNode = queryNode.querySelector(".mx-name-" + name) as HTMLElement;
             if (window.document.isEqualNode(queryNode)) { break; }
@@ -138,7 +141,7 @@ class ListViewSwipe extends WidgetBase {
 
     private validateConfig(): boolean {
         if (!this.targetNode) {
-            this.showError(`unable to find 'Target listview' named '${this.targetName}'`);
+            this.showError(`unable to find 'Target list view' named '${this.targetName}'`);
             return false;
         }
         if (this.isDescendant(this.targetNode, this.domNode)) {
@@ -147,19 +150,17 @@ class ListViewSwipe extends WidgetBase {
         }
         this.targetWidget = registry.byNode(this.targetNode);
         if (!this.targetWidget) {
-            this.showError(`list view should be placed below the list view, in the same context`);
+            this.showError(`Swipe widget view should be placed below the list view, in the same context`);
             return false;
         }
         if (this.targetWidget.declaredClass !== "mxui.widget.ListView") {
-            this.showError(`'Target listview' name '${this.targetName}' is not of the type listview`);
+            this.showError(`'Target list view' name '${this.targetName}' is not of the type list view`);
             return false;
         }
-        if (this.targetWidget._renderData === undefined
-            || this.targetWidget.datasource === undefined
-            || this.targetWidget.datasource.path === undefined) {
-                this.showError("this Mendix version is not compatible");
-                window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
-                return false;
+        if (!this.targetWidget._renderData || !this.targetWidget.datasource || !this.targetWidget.datasource.path) {
+            this.showError("this Mendix version is not compatible");
+            window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
+            return false;
         }
         if (this.targetWidget.connectListviewSwipeWidget) {
             this.showError(`list view '${this.targetName}' can only have on swipe widget,
@@ -171,41 +172,36 @@ class ListViewSwipe extends WidgetBase {
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (this.itemEntity && this.itemEntity !== listEntity) {
-            this.showError(`'Item entity' ${this.itemEntity} does not 
-            match the listview entity ${listEntity}`);
+            this.showError(`'Item entity' ${this.itemEntity} does not match the list view entity ${listEntity}`);
             return false;
         }
         this.itemEntity = listEntity;
-        if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
-            this.showError("no 'Microflow right' is selected");
+        if (!this.validateActionConfig("left") || !this.validateActionConfig("right")) {
             return false;
         }
-        if (this.onSwipeActionLeft === "callMicroflow" && !this.onSwipeMicroflowLeft) {
-            this.showError("no 'Microflow left' is selected");
+
+        return true;
+    }
+
+    private validateActionConfig(direction: Direction): boolean {
+        if (this.onSwipeAction[direction] === "callMicroflow" && !this.onSwipeMicroflow[direction]) {
+            this.showError(`no 'Microflow ${direction}' is selected`);
             return false;
         }
-        if (this.onSwipeActionRight === "showPage" && !this.onSwipePageRight) {
-            this.showError("no 'Open page right' is selected");
+        if (this.onSwipeAction[direction] === "showPage" && !this.onSwipePage[direction]) {
+            this.showError(`no 'Open page ${direction}' is selected`);
             return false;
         }
-        if (this.onSwipeActionLeft === "showPage" && !this.onSwipePageLeft) {
-            this.showError("no 'Open page left' is selected");
+        if (this.afterSwipeAction[direction] === "button" && !this.backgroundName[direction]) {
+            this.showError(`no 'Swipe container ${direction}' name provided.` +
+                `This is required when 'After swipe ${direction}' is set to stick to button`);
             return false;
         }
         if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
             this.showError("no 'On swipe' action left or right selected");
             return false;
         }
-        if (this.afterSwipeActionRight === "button" && this.backgroundNameRight === "") {
-            this.showError("no 'Swipe container right' name provided." +
-                "This is required when 'After swipe right' is set to stick to button");
-            return false;
-        }
-        if (this.afterSwipeActionLeft === "button" && this.backgroundNameLeft === "") {
-            this.showError("no 'Swipe container left' name provided." +
-                "This is required when 'After swipe left' is set to Stick to button");
-            return false;
-        }
+
         return true;
     }
 
