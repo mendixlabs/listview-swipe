@@ -2,7 +2,7 @@
 <widget id="com.mendix.widget.listviewswipe.ListViewSwipe" needsEntityContext="false" offlineCapable="true" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../../../../xsd/widget.xsd">
     <name>List view swipe</name>
     <description>Enable swipe action on a list view</description>
-    <icon/>
+    <icon>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAB1UlEQVQ4T2OAAXt7ew5ra+vV6enpj4D0srS0NFYTS0tDcxsbc6gSBit7FxNze3sHKBcVqKio+G7duvU/CKxZs+a/vpFRtr6J6Ttza7v15jZ2s0HY0tZ+rb6J2Tdre3sLqDYEkJCQCDp06BDYgH379v3X0NAIMjAxW2Xn7JrnFxKiBcLOHl5ZhuYWe318fLig2hAA3QB1dXU/oLdYPDw82KFKGEJDQ9ns4+M5oFxUgG6AsrLyNFlZ2XwdHR0NqBL8AN2ARYsW/b979+7/pKSk98Dw6VJTU6swNjbGdDoMoBtw5MgRMHv16tVg9rlz5/4DXTM1JCSEE6oFAQwNDfUUFBRqsBmwYcOG/8eOHQOzgZr/Z2ZmfgO6xhmqlYEBGNo5EyZM+N/Y2PifkAHNzc3///79+x+YTrZAtTMwBAcHnwFJ7t+/H27A169f/3/79g3MfvDgwf+XL1+C2SADQCA8PPwcVDsDQ05OzluQILIBuMD169fBdHJy8j2odgaGiooKsCAxBsBAamoqpgEXL178f+XKFTCbEADmE4QB+fn5X6DiRANg2rgL1c7A4ODgsPP3799QKeIAMHnvg2pnYNDU1HSZMWMGVIowePbs2X9gymyD6GZgAAAZZjCU56EpbQAAAABJRU5ErkJggg==</icon>
     <properties>
         <property key="targetName" type="string" required="true">
             <caption>Target list view</caption>
@@ -55,13 +55,13 @@
             <caption>After swipe left</caption>
             <category>Swipe to left</category>
             <description>Animate effect after swipe:
-Continue the swipe movement 'out' of the list view. Animate 'hiding'' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item 'back'' to it original position. Show the background 'buttons' by sticking to their side.</description>
+Continue the swipe movement 'Move out' of the list view. Animate 'hide' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item to 'Move back' to it original position. Show the background buttons using 'Stick to button(s)'.</description>
             <enumerationValues>
                 <enumerationValue key="hide">Move out, hide</enumerationValue>
                 <enumerationValue key="reset">Move out, reset</enumerationValue>
                 <enumerationValue key="none">Move out</enumerationValue>
                 <enumerationValue key="back">Move back</enumerationValue>
-                <enumerationValue key="button">Stick to button</enumerationValue>
+                <enumerationValue key="button">Stick to button(s)</enumerationValue>
             </enumerationValues>
         </property>
         <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
@@ -100,13 +100,13 @@ Continue the swipe movement 'out' of the list view. Animate 'hiding'' the item t
             <caption>After swipe right</caption>
             <category>Swipe to right</category>
             <description>Animate effect after swipe:
-Continue the swipe movement 'out' of the list view. Animate 'hiding'' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item 'back'' to it original position. Show the background 'buttons' by sticking to their side.</description>
+Continue the swipe movement 'Move out' of the list view. Animate 'hide' the item to zero height. 'Reset' the item immediate back to its original position. Animate the item to 'Move back' to it original position. Show the background buttons using 'Stick to button(s)'.</description>
             <enumerationValues>
                 <enumerationValue key="hide">Move out, hide</enumerationValue>
                 <enumerationValue key="reset">Move out, reset</enumerationValue>
                 <enumerationValue key="none">Move out</enumerationValue>
                 <enumerationValue key="back">Move back</enumerationValue>
-                <enumerationValue key="button">Stick to button</enumerationValue>
+                <enumerationValue key="button">Stick to button(s)</enumerationValue>
             </enumerationValues>
         </property>
         <property key="afterSwipeBackgroundNameRight" type="string" required="false">
