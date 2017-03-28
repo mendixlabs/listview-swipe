@@ -9,11 +9,12 @@ interface SwipeOptions {
     backgroundName: {left: string, right: string};
     callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
+    classPrefix: string;
     parentElement: HTMLElement;
     swipeDirection: Direction | "horizontal";
     transparentOnSwipe?: boolean;
 }
-
+interface Elements { left: HTMLElement | undefined; right: HTMLElement | undefined; }
 type Direction = "right" | "left";
 type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 
@@ -26,8 +27,8 @@ class HammerSwipe {
     private isSwiped = false;
     private isScrolling = false;
     private foreElement: HTMLElement;
-    private backElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
-    private afterElement: { right: HTMLElement | undefined, left: HTMLElement | undefined };
+    private backElement: Elements;
+    private afterElement: Elements;
     private border: { left: number, right: number };
     private swipeDirection: number;
     private thresholdCompensation = 0;
@@ -69,16 +70,17 @@ class HammerSwipe {
     private setupElements(options: SwipeOptions) {
         // Foreground is the mx-dataview-content
         this.foreElement = this.container.firstChild.firstChild as HTMLElement;
-        Utils.addClass(this.foreElement, "swipe-foreground");
+        Utils.addClass(this.foreElement, this.options.classPrefix + "-foreground");
 
         this.backElement = {
-            left: this.findElement(options.backgroundName.left, "Swipe container left", "swipe-background"),
-            right: this.findElement(options.backgroundName.right, "Swipe container right", "swipe-background")
+            left: this.findElement(options.backgroundName.left, "Swipe container left"),
+            right: this.findElement(options.backgroundName.right, "Swipe container right")
         };
         this.afterElement = {
-            left: this.findElement(options.afterSwipeBackgroundName.left, "Hide container left", "swipe-background-after"),
-            right: this.findElement(options.afterSwipeBackgroundName.right, "Hide container right", "swipe-background-after")
+            left: this.findElement(options.afterSwipeBackgroundName.left, "Hide container left"),
+            right: this.findElement(options.afterSwipeBackgroundName.right, "Hide container right")
         };
+        this.setElementClasses();
     }
 
     private checkButtons(direction: Direction) {
@@ -92,12 +94,9 @@ class HammerSwipe {
         }
     }
 
-    private findElement(name: string, displayName: string, addClass?: string): HTMLElement | undefined {
+    private findElement(name: string, displayName: string): HTMLElement | undefined {
         const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : undefined;
         if (element) {
-            if (addClass) {
-                Utils.addClass(element, addClass);
-            }
             // Move additional elements to become a sibling of the the foreground
             this.foreElement.parentElement.appendChild(element);
         }
@@ -105,6 +104,27 @@ class HammerSwipe {
             throw new ConfigError(`no '${displayName}' found named ${name}`);
         }
         return element;
+    }
+
+    private setElementClasses() {
+        const prefix = this.options.classPrefix;
+        Utils.addClass(this.backElement.left, prefix + "-background");
+        Utils.addClass(this.backElement.right, prefix + "-background");
+        if (this.backElement.left === this.backElement.right) {
+            Utils.addClass(this.backElement.left, prefix + "-background-shared");
+        } else {
+            Utils.addClass(this.backElement.left, prefix + "-background-left");
+            Utils.addClass(this.backElement.right, prefix + "-background-right");
+        }
+
+        Utils.addClass(this.afterElement.left, prefix + "-background-after");
+        Utils.addClass(this.afterElement.right, prefix + "-background-after");
+        if (this.afterElement.left === this.afterElement.right) {
+            Utils.addClass(this.afterElement.left, prefix + "-background-after-shared");
+        } else {
+            Utils.addClass(this.afterElement.left, prefix + "-background-after-left");
+            Utils.addClass(this.afterElement.right, prefix + "-background-after-right");
+        }
     }
 
     private onPanStart(event: HammerInput) {
@@ -300,6 +320,13 @@ class HammerSwipe {
             }, this.options.callbackDelay);
         } else if (this.options.afterSwipeAction[direction] === "none") {
             Utils.addClass(this.foreElement, "swiped-out");
+            setTimeout(() => {
+                this.options.callback(this.container, direction);
+            }, this.options.callbackDelay);
+        } else if (this.options.afterSwipeAction[direction] === "button") {
+            setTimeout(() => {
+                this.options.callback(this.container, direction);
+            }, this.options.callbackDelay);
         }
     }
 

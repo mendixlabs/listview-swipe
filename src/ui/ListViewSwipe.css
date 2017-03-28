@@ -4,20 +4,20 @@
 }
 
 .widget-listview-swipe .mx-listview-item.animate,
-.widget-listview-swipe .mx-listview-item.animate .swipe-foreground {
+.widget-listview-swipe .mx-listview-item.animate .widget-listview-swipe-foreground {
     transition: all .4s;
     -webkit-transition: all .4s;
     touch-action: pan-y;
 }
 
-.widget-listview-swipe .swipe-foreground {
+.widget-listview-swipe-foreground {
     position: relative;
     z-index: 30;
     height: 100%;
     background-color: #ffffff;
 }
 
-.widget-listview-swipe .swipe-background {
+.widget-listview-swipe-background {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -27,7 +27,7 @@
     z-index: 20;
 }
 
-.widget-listview-swipe .swipe-background-after {
+.widget-listview-swipe-background-after {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -37,10 +37,23 @@
     z-index: 10;
 }
 
-.mx-listview.widget-listview-swipe > .mx-list > .mx-listview-item {
+.widget-listview-swipe > .mx-list > .mx-listview-item {
     padding: 0;
 }
 
 .swiped-out {
     visibility: hidden;
+}
+
+.widget-listview-swipe-background .mx-button {
+    height: 100%;
+    border-radius: 0;
+}
+
+.widget-listview-swipe-background-left > * {
+    float: right;
+}
+
+.widget-listview-swipe-background-after, .widget-listview-swipe-background-shared {
+    text-align: center;
 }

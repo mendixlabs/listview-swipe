@@ -14,9 +14,10 @@ export class Utils {
         }
     }
 
-    static addClass(element: HTMLElement | undefined, className: string) {
+    static addClass(element: HTMLElement | undefined, className: string, ...classNamesList: string[]) {
+        classNamesList.push(className);
         if (element) {
-            element.classList.add(className);
+            classNamesList.forEach(name => element.classList.add(name));
         }
     }
 

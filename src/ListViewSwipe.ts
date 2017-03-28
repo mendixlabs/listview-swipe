@@ -88,6 +88,7 @@ class ListViewSwipe extends WidgetBase {
                     backgroundName: { left: this.backgroundNameLeft, right: this.backgroundNameRight },
                     callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
                     callbackDelay: this.actionTriggerDelay,
+                    classPrefix: this.swipeClass,
                     parentElement: this.mxform.domNode,
                     swipeDirection: direction,
                     transparentOnSwipe: this.transparentOnSwipe
