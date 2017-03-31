@@ -37,17 +37,23 @@
     z-index: 10;
 }
 
-.widget-listview-swipe > .mx-list > .mx-listview-item {
-    padding: 0;
-}
-
 .swiped-out {
     visibility: hidden;
+}
+
+/* Help styling for most common swipe cases */
+.widget-listview-swipe > .mx-list > .mx-listview-item {
+    padding: 0;
 }
 
 .widget-listview-swipe-background .mx-button {
     height: 100%;
     border-radius: 0;
+}
+
+.widget-listview-swipe-background .mx-dataview,
+.widget-listview-swipe-background .mx-dataview-content {
+    height: 100%;
 }
 
 .widget-listview-swipe-background-left > * {

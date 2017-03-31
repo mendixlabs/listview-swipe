@@ -8,13 +8,15 @@ interface SwipeOptions {
     afterSwipeBackgroundName: {left: string, right: string };
     backgroundName: {left: string, right: string};
     callback: (element: HTMLElement, direction: Direction) => void;
-    callbackDelay: number;
+    callbackDelay: { left: number, right: number };
     classPrefix: string;
     parentElement: HTMLElement;
     swipeDirection: Direction | "horizontal";
-    transparentOnSwipe?: boolean;
+    transparentOnSwipe?: { left: boolean, right: boolean };
 }
+
 interface Elements { left: HTMLElement | undefined; right: HTMLElement | undefined; }
+
 type Direction = "right" | "left";
 type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 
@@ -30,7 +32,6 @@ class HammerSwipe {
     private backElement: Elements;
     private afterElement: Elements;
     private border: { left: number, right: number };
-    private swipeDirection: number;
     private thresholdCompensation = 0;
     private thresholdAcceptSwipe: { left: number, right: number };
     // Internal settings
@@ -52,7 +53,11 @@ class HammerSwipe {
         this.addHideTransitionEvent("left");
         this.addHideTransitionEvent("right");
 
-        const direction = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
+        const direction = options.swipeDirection === "right" ? Hammer.DIRECTION_RIGHT
+            : options.swipeDirection === "left" ? Hammer.DIRECTION_LEFT
+            : options.swipeDirection === "horizontal" ? Hammer.DIRECTION_HORIZONTAL
+            : Hammer.DIRECTION_NONE;
+
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({
             direction,
@@ -150,7 +155,13 @@ class HammerSwipe {
             return;
         }
 
-        const percentage = (100 / this.containerSize) * (event.deltaX - this.thresholdCompensation);
+        let percentage = (100 / this.containerSize) * (event.deltaX - this.thresholdCompensation);
+        if (this.options.swipeDirection === "right" && percentage < 0) {
+            percentage = 0;
+        }
+        if (this.options.swipeDirection === "left" && percentage > 0) {
+            percentage = 0;
+        }
         this.show(percentage, false);
     }
 
@@ -190,7 +201,7 @@ class HammerSwipe {
 
     private findButtonBorder(direction: Direction): number {
         Utils.removeClass(this.backElement[direction], "hidden");
-        let border = 0;
+        let borderEdge = 0;
         const backElement = this.backElement[direction];
         if (backElement && this.options.afterSwipeAction[direction] === "button") {
             const buttons = backElement.querySelectorAll("." + this.buttonClasses.join(", ."));
@@ -198,14 +209,15 @@ class HammerSwipe {
                 const button = buttons[i] as HTMLElement;
                 let position = button.getBoundingClientRect().left;
                 if (direction === "left") {
-                    border = border ? border > position ? position : border : position;
+                    borderEdge = borderEdge ? borderEdge > position ? position : borderEdge : position;
                 } else {
                     position += button.offsetWidth;
-                    border = border ? border < position ? position : border : position;
+                    borderEdge = borderEdge ? borderEdge < position ? position : borderEdge : position;
                 }
             }
         }
-        return border;
+
+        return borderEdge;
     }
 
     private calculateThresholdAcceptSwipe(direction: Direction): number {
@@ -213,6 +225,7 @@ class HammerSwipe {
         if (this.options.afterSwipeAction[direction] === "button") {
             thresholdAcceptSwipe = Math.abs(this.border[direction] / this.containerSize * 100);
         }
+
         return thresholdAcceptSwipe;
     }
 
@@ -251,7 +264,7 @@ class HammerSwipe {
 
         const position = (this.containerSize / 100) * percentage;
         domStyle.set(this.foreElement, {
-            opacity: this.options.transparentOnSwipe ? 1 - Math.abs(percentage / 100) : 1,
+            opacity: direction && this.options.transparentOnSwipe[direction] ? 1 - Math.abs(percentage / 100) : 1,
             transform: "translate3d(" + position + "px, 0, 0)"
         });
     }
@@ -295,13 +308,15 @@ class HammerSwipe {
         if (this.options.afterSwipeAction[direction] === "back") {
             this.resetElements(true);
             this.isSwiped = false;
-            this.options.callback(this.container, direction);
+            setTimeout(() => {
+                this.options.callback(this.container, direction);
+            }, this.options.callbackDelay[direction]);
         } else if (this.options.afterSwipeAction[direction] === "reset") {
             setTimeout(() => {
                 this.resetElements(false);
                 this.isSwiped = false;
                 this.options.callback(this.container, direction);
-            }, this.options.callbackDelay);
+            }, this.options.callbackDelay[direction]);
         } else if (this.options.afterSwipeAction[direction] === "hide") {
             const oppositeDirection = direction === "left" ? "right" : "left";
             if (this.afterElement.right !== this.afterElement.left) {
@@ -317,16 +332,16 @@ class HammerSwipe {
                     Utils.removeClass(this.container, "animate");
                     this.options.callback(this.container, direction);
                 }, this.delayRemoveItem);
-            }, this.options.callbackDelay);
+            }, this.options.callbackDelay[direction]);
         } else if (this.options.afterSwipeAction[direction] === "none") {
             Utils.addClass(this.foreElement, "swiped-out");
             setTimeout(() => {
                 this.options.callback(this.container, direction);
-            }, this.options.callbackDelay);
+            }, this.options.callbackDelay[direction]);
         } else if (this.options.afterSwipeAction[direction] === "button") {
             setTimeout(() => {
                 this.options.callback(this.container, direction);
-            }, this.options.callbackDelay);
+            }, this.options.callbackDelay[direction]);
         }
     }
 

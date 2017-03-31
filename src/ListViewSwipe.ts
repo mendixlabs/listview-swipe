@@ -24,9 +24,11 @@ interface ListView extends mxui.widget._WidgetBase {
 class ListViewSwipe extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
-    transparentOnSwipe: boolean;
+    transparentOnSwipeLeft: boolean;
+    transparentOnSwipeRight: boolean;
     itemEntity: string;
-    actionTriggerDelay: number;
+    actionTriggerDelayLeft: number;
+    actionTriggerDelayRight: number;
     onSwipeActionLeft: OnSwipeAction;
     onSwipeActionRight: OnSwipeAction;
     onSwipeMicroflowLeft: string;
@@ -57,8 +59,8 @@ class ListViewSwipe extends WidgetBase {
         this.onSwipePage = { left: this.onSwipePageLeft, right: this.onSwipePageRight };
         this.onSwipeMicroflow = { left: this.onSwipeMicroflowLeft, right: this.onSwipeMicroflowRight };
         this.onSwipeAction = { left: this.onSwipeActionLeft, right: this.onSwipeActionRight };
-        this.afterSwipeAction = { left: this.afterSwipeActionRight, right: this.afterSwipeActionLeft };
-        this.backgroundName = { left: this.backgroundNameLeft, right: this.backgroundNameRight }
+        this.afterSwipeAction = { left: this.afterSwipeActionLeft, right: this.afterSwipeActionRight };
+        this.backgroundName = { left: this.backgroundNameLeft, right: this.backgroundNameRight };
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
             this.targetWidget = registry.byNode(this.targetNode);
@@ -87,11 +89,11 @@ class ListViewSwipe extends WidgetBase {
                     },
                     backgroundName: { left: this.backgroundNameLeft, right: this.backgroundNameRight },
                     callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
-                    callbackDelay: this.actionTriggerDelay,
+                    callbackDelay: { left: this.actionTriggerDelayLeft, right: this.actionTriggerDelayRight },
                     classPrefix: this.swipeClass,
                     parentElement: this.mxform.domNode,
                     swipeDirection: direction,
-                    transparentOnSwipe: this.transparentOnSwipe
+                    transparentOnSwipe: { left: this.transparentOnSwipeLeft, right: this.transparentOnSwipeRight }
                 };
 
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
@@ -126,10 +128,11 @@ class ListViewSwipe extends WidgetBase {
             if (window.document.isEqualNode(queryNode)) { break; }
             queryNode = queryNode.parentNode as HTMLElement;
         }
+
         return targetNode;
     }
 
-    private isDescendant(parent: HTMLElement, child: HTMLElement) {
+    private isDescendant(parent: HTMLElement, child: HTMLElement): boolean {
         let node = child.parentNode;
         while (node != null) {
             if (node === parent) {
@@ -137,6 +140,7 @@ class ListViewSwipe extends WidgetBase {
             }
             node = node.parentNode;
         }
+
         return false;
     }
 
@@ -164,7 +168,7 @@ class ListViewSwipe extends WidgetBase {
             return false;
         }
         if (this.targetWidget.connectListviewSwipeWidget) {
-            this.showError(`list view '${this.targetName}' can only have on swipe widget,
+            this.showError(`list view '${this.targetName}' can only have one swipe widget,
             it is already connected to ${this.targetWidget.connectListviewSwipeWidget}`);
             return false;
         }
@@ -177,6 +181,10 @@ class ListViewSwipe extends WidgetBase {
             return false;
         }
         this.itemEntity = listEntity;
+        if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
+            this.showError("no 'On swipe action' left or right selected");
+            return false;
+        }
         if (!this.validateActionConfig("left") || !this.validateActionConfig("right")) {
             return false;
         }
@@ -185,6 +193,9 @@ class ListViewSwipe extends WidgetBase {
     }
 
     private validateActionConfig(direction: Direction): boolean {
+        if (this.onSwipeAction[direction] === "disabled") {
+            return true;
+        }
         if (this.onSwipeAction[direction] === "callMicroflow" && !this.onSwipeMicroflow[direction]) {
             this.showError(`no 'Microflow ${direction}' is selected`);
             return false;
@@ -198,10 +209,6 @@ class ListViewSwipe extends WidgetBase {
                 `This is required when 'After swipe ${direction}' is set to stick to button`);
             return false;
         }
-        if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
-            this.showError("no 'On swipe' action left or right selected");
-            return false;
-        }
 
         return true;
     }
@@ -210,8 +217,7 @@ class ListViewSwipe extends WidgetBase {
         // Place the message inside the list view, only when it is rendered, else the message is removed.
         const node = this.targetNode && this.targetNode.hasChildNodes() ? this.targetNode : this.domNode;
         const type = codeException ? "List view swipe code exception:" : "List view swipe configuration error:";
-        domConstruct.place(`<div class='alert alert-danger'>${type}<br>
-        - ${message}</div>`, node, "first");
+        domConstruct.place(`<div class='alert alert-danger'>${type}<br>- ${message}</div>`, node, "first");
         window.logger.error(this.id, `configuration error: ${message}`);
     }
 
