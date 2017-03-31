@@ -6,7 +6,7 @@
             <widgetFile path="ListViewSwipe.xml" />
         </widgetFiles>
         <files>
-            <file path="com/mendix/widget/ListViewSwipe" />
+            <file path="ListViewSwipe/widget/ListViewSwipe" />
         </files>
     </clientModule>
 </package>

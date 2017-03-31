@@ -8,7 +8,6 @@ import * as domConstruct from "dojo/dom-construct";
 
 import * as Hammer from "hammerjs";
 import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./HammerSwipe";
-import { ConfigError } from "./ConfigError";
 
 import "./ui/ListViewSwipe.css";
 
@@ -63,8 +62,10 @@ class ListViewSwipe extends WidgetBase {
         this.backgroundName = { left: this.backgroundNameLeft, right: this.backgroundNameRight };
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
-            this.targetWidget = registry.byNode(this.targetNode);
+            this.targetWidget.connectListviewSwipeWidget = this.id;
             domClass.add(this.targetNode, this.swipeClass);
+        } else {
+            this.targetWidget = null;
         }
     }
 
@@ -95,7 +96,9 @@ class ListViewSwipe extends WidgetBase {
                     swipeDirection: direction,
                     transparentOnSwipe: { left: this.transparentOnSwipeLeft, right: this.transparentOnSwipeRight }
                 };
-
+                // Note; this function is hooking into the Mendix private API, this is subject to change without notice!
+                // Please do not re-use this. The only supported API is publicly documented at
+                // https://apidocs.mendix.com/7/client/
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
                         const listItems = this.targetNode.querySelectorAll(".mx-listview-item:not(.swipe-connected)");
@@ -104,8 +107,11 @@ class ListViewSwipe extends WidgetBase {
                             this.hammers.push(new HammerSwipe(container, swipeOptions));
                         }, this);
                     } catch (error) {
-                        const codeException = !(error instanceof ConfigError);
-                        this.showError(error.message, codeException);
+                        // Should be implemented with throw new ConfigError
+                        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+                        const codeException = !error.message.startsWith("LVS ");
+                        const message = codeException ? error.message : error.message.substring(4);
+                        this.showError(message, codeException);
                     }
                 });
             }
@@ -150,18 +156,22 @@ class ListViewSwipe extends WidgetBase {
             return false;
         }
         if (this.isDescendant(this.targetNode, this.domNode)) {
-            this.showError("The widget should not be placed inside the list view, move it just below");
+            this.showError("The widget should not be placed inside the list view, " +
+                "move it directly below the list view, in the same context");
             return false;
         }
         this.targetWidget = registry.byNode(this.targetNode);
         if (!this.targetWidget) {
-            this.showError(`Swipe widget view should be placed below the list view, in the same context`);
+            this.showError(`Swipe widget view should be placed directly below the list view, in the same context`);
             return false;
         }
         if (this.targetWidget.declaredClass !== "mxui.widget.ListView") {
             this.showError(`'Target list view' name '${this.targetName}' is not of the type list view`);
             return false;
         }
+        // Note; this function is hooking into the Mendix private API, this is subject to change!
+        // Please do not re-use this. The only supported API is publicly documented at
+        // https://apidocs.mendix.com/7/client/
         if (!this.targetWidget._renderData || !this.targetWidget.datasource || !this.targetWidget.datasource.path) {
             this.showError("this Mendix version is not compatible");
             window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
@@ -172,8 +182,6 @@ class ListViewSwipe extends WidgetBase {
             it is already connected to ${this.targetWidget.connectListviewSwipeWidget}`);
             return false;
         }
-        this.targetWidget.connectListviewSwipeWidget = this.id;
-
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (this.itemEntity && this.itemEntity !== listEntity) {
@@ -201,12 +209,12 @@ class ListViewSwipe extends WidgetBase {
             return false;
         }
         if (this.onSwipeAction[direction] === "showPage" && !this.onSwipePage[direction]) {
-            this.showError(`no 'Open page ${direction}' is selected`);
+            this.showError(`no 'Page ${direction}' is selected`);
             return false;
         }
         if (this.afterSwipeAction[direction] === "button" && !this.backgroundName[direction]) {
-            this.showError(`no 'Swipe container ${direction}' name provided.` +
-                `This is required when 'After swipe ${direction}' is set to stick to button`);
+            this.showError(`no name for 'Swipe container ${direction}' provided. ` +
+                `This is required when 'After swipe ${direction}' is set to 'Stick to button(s)'`);
             return false;
         }
 
@@ -256,7 +264,7 @@ class ListViewSwipe extends WidgetBase {
 // Declare widget prototype the Dojo way
 // Thanks to https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/dojo/README.md
 // tslint:disable : only-arrow-functions
-dojoDeclare("com.mendix.widget.listviewswipe.ListViewSwipe", [ WidgetBase ], function(Source: any) {
+dojoDeclare("ListViewSwipe.widget.ListViewSwipe", [ WidgetBase ], function(Source: any) {
     const result: any = {};
     for (const property in Source.prototype) {
         if (property !== "constructor" && Source.prototype.hasOwnProperty(property)) {

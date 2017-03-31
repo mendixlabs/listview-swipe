@@ -7,7 +7,7 @@ module.exports = {
     entry: "./src/ListViewSwipe.ts",
     output: {
         path: path.resolve(__dirname, "dist/tmp"),
-        filename: "src/com/mendix/widget/listviewSwipe/ListViewSwipe.js",
+        filename: "src/ListViewSwipe/widget/ListViewSwipe.js",
         libraryTarget: "umd"
     },
     resolve: {
@@ -31,7 +31,7 @@ module.exports = {
         ], {
             copyUnmodified: true
         }),
-        new ExtractTextPlugin("./src/com/mendix/widget/listviewswipe/ui/ListViewSwipe.css"),
+        new ExtractTextPlugin("./src/ListViewSwipe/widget/ui/ListViewSwipe.css"),
         new webpack.LoaderOptionsPlugin({
             debug: true
         })

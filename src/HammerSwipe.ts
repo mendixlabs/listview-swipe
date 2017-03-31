@@ -1,7 +1,6 @@
 import * as Hammer from "hammerjs";
 import * as domStyle from "dojo/dom-style";
 import { Utils } from "./Utils";
-import { ConfigError } from "./ConfigError";
 
 interface SwipeOptions {
     afterSwipeAction: {left: AfterSwipeAction, right: AfterSwipeAction};
@@ -93,8 +92,8 @@ class HammerSwipe {
         if (backElement && this.options.afterSwipeAction[direction] === "button") {
             const buttons = backElement.querySelectorAll("." + this.buttonClasses.join(", ."));
             if (buttons.length === 0) {
-                throw new ConfigError(`no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
-                    `container. This is required when after swipe ${direction} is set to Stick to button.`);
+                throw new Error(`LVS no buttons or links found in the '${this.options.backgroundName[direction]}' ` +
+                    `container. This is required when 'After swipe ${direction}' is set to 'Stick to button(s)'.`);
             }
         }
     }
@@ -106,7 +105,7 @@ class HammerSwipe {
             this.foreElement.parentElement.appendChild(element);
         }
         if (name && !element) {
-            throw new ConfigError(`no '${displayName}' found named ${name}. It should be placed inside the list view`);
+            throw new Error(`LVS no '${displayName}' found named ${name}. It should be placed inside the list view`);
         }
         return element;
     }
@@ -174,8 +173,14 @@ class HammerSwipe {
             return;
         }
 
-        const percentage = (100 / this.containerSize) * (event.deltaX - this.thresholdCompensation);
+        let percentage = (100 / this.containerSize) * (event.deltaX - this.thresholdCompensation);
         const direction = percentage < 0 ? "left" : "right";
+        if (this.options.swipeDirection === "right" && percentage < 0) {
+            percentage = 0;
+        }
+        if (this.options.swipeDirection === "left" && percentage > 0) {
+            percentage = 0;
+        }
         if ((Math.abs(percentage) > this.thresholdAcceptSwipe[direction]
             || Math.abs(event.velocityX) > this.thresholdVelocity)
             && event.type === "panend") {
