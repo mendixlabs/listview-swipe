@@ -1,0 +1,38 @@
+{
+  "name": "listview-swipe",
+  "widgetName": "ListviewSwipe",
+  "version": "1.0.0",
+  "description": "Enable swipe action on a list view",
+  "copyright": "Flock of Birds",
+  "author": "Andries Smit",
+  "private": true,
+  "dependencies": {
+    "hammerjs": "^2.0.8"
+  },
+  "devDependencies": {
+    "@types/big.js": "0.0.31",
+    "@types/dojo": "^1.9.37",
+    "@types/hammerjs": "^2.0.34",
+    "copy-webpack-plugin": "^4.0.1",
+    "css-loader": "^0.27.3",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "grunt": "1.0.1",
+    "grunt-check-dependencies": "^1.0.0",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-compress": "^1.4.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-newer": "^1.1.1",
+    "grunt-webpack": "^2.0.1",
+    "json-loader": "^0.5.4",
+    "mendix-client": "git+https://github.com/FlockOfBirds/Mendix-client-typing.git",
+    "source-map-loader": "^0.2.0",
+    "style-loader": "^0.16.1",
+    "ts-loader": "^2.0.3",
+    "tslint": "^4.5.1",
+    "tslint-eslint-rules": "^3.4.0",
+    "typescript": "^2.2.2",
+    "webpack": "^2.3.2",
+    "webpack-dev-server": "^2.4.2"
+  }
+}

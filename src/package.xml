@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--suppress ALL -->
+<package xmlns="http://www.mendix.com/package/1.0/">
+    <clientModule name="List view swipe" version="1.0.0" xmlns="http://www.mendix.com/clientModule/1.0/">
+        <widgetFiles>
+            <widgetFile path="ListViewSwipe.xml" />
+        </widgetFiles>
+        <files>
+            <file path="ListViewSwipe/widget/ListViewSwipe" />
+        </files>
+    </clientModule>
+</package>

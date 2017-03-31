@@ -1,0 +1,65 @@
+.widget-listview-swipe > .mx-listview-list {
+    overflow: hidden;
+    will-change: transform, opacity;
+}
+
+.widget-listview-swipe .mx-listview-item.animate,
+.widget-listview-swipe .mx-listview-item.animate .widget-listview-swipe-foreground {
+    transition: all .4s;
+    -webkit-transition: all .4s;
+    touch-action: pan-y;
+}
+
+.widget-listview-swipe-foreground {
+    position: relative;
+    z-index: 30;
+    height: 100%;
+    background-color: #ffffff;
+}
+
+.widget-listview-swipe-background {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: #d3d3d3;
+    top: 0;
+    left: 0;
+    z-index: 20;
+}
+
+.widget-listview-swipe-background-after {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: #808080;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.swiped-out {
+    visibility: hidden;
+}
+
+/* Help styling for most common swipe cases */
+.widget-listview-swipe > .mx-list > .mx-listview-item {
+    padding: 0;
+}
+
+.widget-listview-swipe-background .mx-button {
+    height: 100%;
+    border-radius: 0;
+}
+
+.widget-listview-swipe-background .mx-dataview,
+.widget-listview-swipe-background .mx-dataview-content {
+    height: 100%;
+}
+
+.widget-listview-swipe-background-left > * {
+    float: right;
+}
+
+.widget-listview-swipe-background-after, .widget-listview-swipe-background-shared {
+    text-align: center;
+}
