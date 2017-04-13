@@ -108,7 +108,8 @@ class ListViewSwipe extends WidgetBase {
                         }, this);
                     } catch (error) {
                         // Should be implemented with throw new ConfigError
-                        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+                        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes
+                        // #extending-built-ins-like-error-array-and-map-may-no-longer-work
                         const codeException = !error.message.startsWith("LVS ");
                         const message = codeException ? error.message : error.message.substring(4);
                         this.showError(message, codeException);
@@ -240,7 +241,8 @@ class ListViewSwipe extends WidgetBase {
         if (this.onSwipeAction[direction] === "callMicroflow" && this.onSwipeMicroflow[direction]) {
             window.mx.ui.action(this.onSwipeMicroflow[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while executing action ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
+                error: error => window.mx.ui.error(`An error occurred while executing action 
+                    ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
             });
         }
     }
@@ -249,7 +251,8 @@ class ListViewSwipe extends WidgetBase {
         if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
             window.mx.ui.openForm(this.onSwipePage[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while opening form ${this.onSwipePage[direction]} : ${error.message}`)
+                error: error => window.mx.ui.error(`An error occurred while opening form 
+                    ${this.onSwipePage[direction]} : ${error.message}`)
             });
         }
     }

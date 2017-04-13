@@ -42,10 +42,16 @@
 }
 
 /* Help styling for most common swipe cases */
-.widget-listview-swipe > .mx-list > .mx-listview-item {
+.widget-listview-swipe .mx-list .mx-listview-item {
     padding: 0;
 }
-
+.widget-listview-swipe .mx-listview-item > .mx-dataview {
+    background-color: inherit;
+}
+.widget-listview-swipe .mx-listview-item > .mx-dataview > .mx-dataview-content {
+    padding: 10px 0;
+    background-color: inherit;
+}
 .widget-listview-swipe-background .mx-button {
     height: 100%;
     border-radius: 0;
@@ -56,10 +62,36 @@
     height: 100%;
 }
 
-.widget-listview-swipe-background-left > * {
-    float: right;
+.widget-listview-swipe-background-left,
+.widget-listview-swipe-background-after-left {
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 15px;
 }
 
-.widget-listview-swipe-background-after, .widget-listview-swipe-background-shared {
-    text-align: center;
+.widget-listview-swipe-background-right,
+.widget-listview-swipe-background-after-right {
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 15px;
+}
+
+.widget-listview-swipe-background-after-shared,
+.widget-listview-swipe-background-shared {
+    justify-content: center;
+    align-items: center;
+}
+
+.widget-listview-swipe-background-right .mx-button:first-child {
+    margin-left: -15px;
+}
+
+.widget-listview-swipe-background-left .mx-button:last-child {
+    margin-right: -15px;
+}
+
+.widget-listview-swipe-background,
+.widget-listview-swipe-background-after {
+    display: flex;
+    flex-direction: row;
 }
