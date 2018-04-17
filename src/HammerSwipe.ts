@@ -194,9 +194,10 @@ class HammerSwipe {
 
     private sizeCalculations() {
         this.containerSize = this.container.offsetWidth;
+        const containerOffset = this.container.getBoundingClientRect().left;
         this.border = {
-            left: -this.containerSize + this.findButtonBorder("left"),
-            right: this.findButtonBorder("right")
+            left: -this.containerSize + this.findButtonBorder("left") - containerOffset,
+            right: this.findButtonBorder("right") - containerOffset
         };
         this.thresholdAcceptSwipe = {
             left: this.calculateThresholdAcceptSwipe("left"),
