@@ -33,6 +33,7 @@ class HammerSwipe {
     private border: { left: number, right: number };
     private thresholdCompensation = 0;
     private thresholdAcceptSwipe: { left: number, right: number };
+    private panCanceled: boolean;
     // Internal settings
     readonly delayRemoveItem = 400; // Milliseconds
     readonly thresholdScroll = 60; // Pixels.
@@ -132,7 +133,10 @@ class HammerSwipe {
     }
 
     private onPanStart(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        this.panCanceled = false;
+        if (event.pointerType === "mouse" || event.target.closest("." + this.options.classPrefix + "-disabled")) {
+            this.panCanceled = true;
+        }
         if (this.isSwiped) {
             this.resetElements();
             return;
@@ -143,7 +147,7 @@ class HammerSwipe {
     }
 
     private onPanMove(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        if (this.panCanceled) return;
         if (this.isSwiped) return;
         if (this.isScrolling) return;
 
@@ -165,7 +169,7 @@ class HammerSwipe {
     }
 
     private onPanEnd(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        if (this.panCanceled) return;
         if (this.isScrolling) return;
 
         if (this.isSwiped) {

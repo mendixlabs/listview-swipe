@@ -56,6 +56,11 @@ http://listviewswipeout.mxapps.io
     - .swiping-right
     - .swiping-left
 
+### Disable swipe
+For some use cases the swiping should be (conditional) disabled. This could be done by adding a CSS class `.widget-listview-swipe-disabled` on the list view item, to disable a single item. Or to listview to disable all swipe actions.
+And other custom widgets, like `EnumClass`, could be used to change the classes dynamically at runtime. https://appstore.home.mendix.com/link/app/2641/
+
+
 ## Known issues
  - Swipe should be horizontal. When moved too much, it will cancel the swipe.
  - The 'Open page' should contain a page that has a dataview of the type 'Item entity' or non at all. However this is not check by the modeler nor the widget in runtime.
