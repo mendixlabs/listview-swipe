@@ -1,6 +1,7 @@
 import * as Hammer from "hammerjs";
 import * as domStyle from "dojo/dom-style";
 import { Utils } from "./Utils";
+import "./polyfill";
 
 interface SwipeOptions {
     afterSwipeAction: {left: AfterSwipeAction, right: AfterSwipeAction};
