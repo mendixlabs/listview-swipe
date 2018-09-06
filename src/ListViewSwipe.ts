@@ -253,7 +253,7 @@ class ListViewSwipe extends WidgetBase {
         if (this.onSwipeAction[direction] === "callMicroflow" && this.onSwipeMicroflow[direction]) {
             window.mx.ui.action(this.onSwipeMicroflow[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while executing action 
+                error: error => window.mx.ui.error(`An error occurred while executing action
                     ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
             });
         }
@@ -262,11 +262,11 @@ class ListViewSwipe extends WidgetBase {
     private callNanoflow(direction: Direction, context: mendix.lib.MxContext) {
         if (this.onSwipeAction[direction] === "callNanoflow" && this.onSwipeNanoflow[direction].nanoflow) {
             window.mx.data.callNanoflow({
-                context,
-                error: error => window.mx.ui.error(`An error occurred while executing action 
-                    ${this.onSwipeNanoflow[direction]}: ${error.message}`, true),
                 nanoflow: this.onSwipeNanoflow[direction],
-                origin: this.mxform
+                origin: this.mxform,
+                context,
+                error: error => window.mx.ui.error(`An error occurred while executing action
+                    ${this.onSwipeNanoflow[direction]}: ${error.message}`, true)
             });
         }
     }
@@ -275,7 +275,7 @@ class ListViewSwipe extends WidgetBase {
         if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
             window.mx.ui.openForm(this.onSwipePage[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while opening form 
+                error: error => window.mx.ui.error(`An error occurred while opening form
                     ${this.onSwipePage[direction]} : ${error.message}`)
             });
         }
