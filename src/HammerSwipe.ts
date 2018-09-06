@@ -23,7 +23,6 @@ type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 class HammerSwipe {
     private container: HTMLElement;
     private containerSize: number;
-    private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOptions;
     private isSwiped = false;
@@ -46,7 +45,6 @@ class HammerSwipe {
     constructor(container: HTMLElement, options: SwipeOptions) {
         this.container = container;
         this.options = options;
-        this.containerClass = this.container.className;
 
         this.setupElements(options);
         this.checkButtons("left");

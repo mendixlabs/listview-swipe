@@ -11,13 +11,18 @@ import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./Hammer
 
 import "./ui/ListViewSwipe.css";
 
-type OnSwipeAction = "disabled" | "doNothing" | "showPage" | "callMicroflow";
+type OnSwipeAction = "disabled" | "doNothing" | "showPage" | "callMicroflow" | "callNanoflow";
 
 interface ListView extends mxui.widget._WidgetBase {
     datasource: { path: string };
     _renderData: () => void;
     // Custom property to check single connected widget to a list view, preventing copy past mistakes
     connectListviewSwipeWidget: string;
+}
+
+interface Nanoflow {
+    nanoflow: object[];
+    paramsSpec: { Progress: string };
 }
 
 class ListViewSwipe extends WidgetBase {
@@ -31,7 +36,9 @@ class ListViewSwipe extends WidgetBase {
     onSwipeActionLeft: OnSwipeAction;
     onSwipeActionRight: OnSwipeAction;
     onSwipeMicroflowLeft: string;
+    onSwipeNanoflowLeft: Nanoflow;
     onSwipeMicroflowRight: string;
+    onSwipeNanoflowRight: Nanoflow;
     onSwipePageLeft: string;
     onSwipePageRight: string;
     afterSwipeActionLeft: AfterSwipeAction;
@@ -44,10 +51,10 @@ class ListViewSwipe extends WidgetBase {
     private swipeClass: string;
     private targetWidget: ListView;
     private targetNode: HTMLElement;
-    private contextObject: mendix.lib.MxObject;
     private hammers: HammerSwipe[];
     private onSwipePage: { left: string, right: string };
     private onSwipeMicroflow: { left: string, right: string };
+    private onSwipeNanoflow: { left: Nanoflow, right: Nanoflow };
     private onSwipeAction: { left: OnSwipeAction, right: OnSwipeAction };
     private afterSwipeAction: { left: AfterSwipeAction, right: AfterSwipeAction };
     private backgroundName: { left: string, right: string };
@@ -57,6 +64,7 @@ class ListViewSwipe extends WidgetBase {
         this.swipeClass = "widget-listview-swipe";
         this.onSwipePage = { left: this.onSwipePageLeft, right: this.onSwipePageRight };
         this.onSwipeMicroflow = { left: this.onSwipeMicroflowLeft, right: this.onSwipeMicroflowRight };
+        this.onSwipeNanoflow = { left: this.onSwipeNanoflowLeft, right: this.onSwipeNanoflowRight };
         this.onSwipeAction = { left: this.onSwipeActionLeft, right: this.onSwipeActionRight };
         this.afterSwipeAction = { left: this.afterSwipeActionLeft, right: this.afterSwipeActionRight };
         this.backgroundName = { left: this.backgroundNameLeft, right: this.backgroundNameRight };
@@ -69,9 +77,8 @@ class ListViewSwipe extends WidgetBase {
         }
     }
 
-    update(contextObject: mendix.lib.MxObject, callback?: () => void) {
+    update(_contextObject: mendix.lib.MxObject, callback?: () => void) {
         if (this.targetWidget) {
-            this.contextObject = contextObject;
             let direction: Direction | "horizontal" | undefined;
             if (this.onSwipeActionRight !== "disabled" && this.onSwipeActionLeft !== "disabled") {
                 direction = "horizontal";
@@ -209,6 +216,10 @@ class ListViewSwipe extends WidgetBase {
             this.showError(`no 'Microflow ${direction}' is selected`);
             return false;
         }
+        if (this.onSwipeAction[direction] === "callNanoflow" && !this.onSwipeNanoflow[direction]) {
+            this.showError(`no 'Nanoflow ${direction}' is selected`);
+            return false;
+        }
         if (this.onSwipeAction[direction] === "showPage" && !this.onSwipePage[direction]) {
             this.showError(`no 'Page ${direction}' is selected`);
             return false;
@@ -234,6 +245,7 @@ class ListViewSwipe extends WidgetBase {
         const guid = registry.byNode(element).getGuid();
         const context = this.createContext(guid);
         this.callMicroflow(direction, context);
+        this.callNanoflow(direction, context);
         this.showPage(direction, context);
     }
 
@@ -243,6 +255,18 @@ class ListViewSwipe extends WidgetBase {
                 context,
                 error: error => window.mx.ui.error(`An error occurred while executing action 
                     ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
+            });
+        }
+    }
+
+    private callNanoflow(direction: Direction, context: mendix.lib.MxContext) {
+        if (this.onSwipeAction[direction] === "callNanoflow" && this.onSwipeNanoflow[direction].nanoflow) {
+            window.mx.data.callNanoflow({
+                context,
+                error: error => window.mx.ui.error(`An error occurred while executing action 
+                    ${this.onSwipeNanoflow[direction]}: ${error.message}`, true),
+                nanoflow: this.onSwipeNanoflow[direction],
+                origin: this.mxform
             });
         }
     }
