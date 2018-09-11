@@ -244,38 +244,31 @@ class ListViewSwipe extends WidgetBase {
     private handleSwipe(element: HTMLElement, direction: Direction) {
         const guid = registry.byNode(element).getGuid();
         const context = this.createContext(guid);
-        this.callMicroflow(direction, context);
-        this.callNanoflow(direction, context);
-        this.showPage(direction, context);
+        this.handleAction(direction, context);
     }
 
-    private callMicroflow(direction: Direction, context: mendix.lib.MxContext) {
+    private handleAction(direction: Direction, context: mendix.lib.MxContext) {
         if (this.onSwipeAction[direction] === "callMicroflow" && this.onSwipeMicroflow[direction]) {
             window.mx.ui.action(this.onSwipeMicroflow[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while executing action
+                error: error =>
+                    window.mx.ui.error(`An error occurred while executing microflow
                     ${this.onSwipeMicroflow[direction]}: ${error.message}`, true)
             });
-        }
-    }
-
-    private callNanoflow(direction: Direction, context: mendix.lib.MxContext) {
-        if (this.onSwipeAction[direction] === "callNanoflow" && this.onSwipeNanoflow[direction].nanoflow) {
+        } else if (this.onSwipeAction[direction] === "callNanoflow" && this.onSwipeNanoflow[direction].nanoflow) {
             window.mx.data.callNanoflow({
                 nanoflow: this.onSwipeNanoflow[direction],
                 origin: this.mxform,
                 context,
-                error: error => window.mx.ui.error(`An error occurred while executing action
+                error: error =>
+                    window.mx.ui.error(`An error occurred while executing nanoflow
                     ${this.onSwipeNanoflow[direction]}: ${error.message}`, true)
             });
-        }
-    }
-
-    private showPage(direction: Direction, context: mendix.lib.MxContext) {
-        if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
+        } else if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
             window.mx.ui.openForm(this.onSwipePage[direction], {
                 context,
-                error: error => window.mx.ui.error(`An error occurred while opening form
+                error: error =>
+                    window.mx.ui.error(`An error occurred while opening form
                     ${this.onSwipePage[direction]} : ${error.message}`)
             });
         }
