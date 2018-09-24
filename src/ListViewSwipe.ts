@@ -266,6 +266,7 @@ class ListViewSwipe extends WidgetBase {
             });
         } else if (this.onSwipeAction[direction] === "showPage" && this.onSwipePage[direction]) {
             window.mx.ui.openForm(this.onSwipePage[direction], {
+                location: "content",
                 context,
                 error: error =>
                     window.mx.ui.error(`An error occurred while opening form
