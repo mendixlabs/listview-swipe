@@ -23,6 +23,7 @@
                 <enumerationValue key="doNothing">No action</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
+                <enumerationValue key="callNanoflow">Call a nanoflow</enumerationValue>
             </enumerationValues>
         </property>
         <property key="onSwipePageLeft" type="form" required="false">
@@ -34,6 +35,12 @@
             <caption>Microflow left</caption>
             <category>Swipe to left</category>
             <description>Microflow to execute after swiping. Only applicable for 'On swipe action' 'Call a microflow'</description>
+            <returnType type="Void"/>
+        </property>
+        <property key="onSwipeNanoflowLeft" type="nanoflow" required="false" entityProperty="itemEntity">
+            <caption>Nanoflow left</caption>
+            <category>Swipe to left</category>
+            <description>Nanoflow to execute after swiping. Only applicable for 'On swipe action' 'Call a nanoflow'</description>
             <returnType type="Void"/>
         </property>
         <property key="backgroundNameLeft" type="string" required="false">
@@ -79,6 +86,7 @@ Move out, hide: 800. Move out, reset: 400. Move out: 400. Move back:0. Stick to 
                 <enumerationValue key="doNothing">No action</enumerationValue>
                 <enumerationValue key="showPage">Show a page</enumerationValue>
                 <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
+                <enumerationValue key="callNanoflow">Call a nanoflow</enumerationValue>
             </enumerationValues>
         </property>
         <property key="onSwipePageRight" type="form" required="false">
@@ -90,6 +98,12 @@ Move out, hide: 800. Move out, reset: 400. Move out: 400. Move back:0. Stick to 
             <caption>Microflow right</caption>
             <category>Swipe to right</category>
             <description>Microflow to execute after swiping. Only applicable for 'On swipe action' 'Call a microflow'</description>
+            <returnType type="Void"/>
+        </property>
+        <property key="onSwipeNanoflowRight" type="nanoflow" required="false" entityProperty="itemEntity">
+            <caption>Nanoflow right</caption>
+            <category>Swipe to right</category>
+            <description>Nanoflow to execute after swiping. Only applicable for 'On swipe action' 'Call a nanoflow'</description>
             <returnType type="Void"/>
         </property>
         <property key="backgroundNameRight" type="string" required="false">

@@ -1,6 +1,7 @@
 import * as Hammer from "hammerjs";
 import * as domStyle from "dojo/dom-style";
 import { Utils } from "./Utils";
+import "./polyfill";
 
 interface SwipeOptions {
     afterSwipeAction: {left: AfterSwipeAction, right: AfterSwipeAction};
@@ -22,7 +23,6 @@ type AfterSwipeAction = "reset" | "hide" | "none" | "back" | "button";
 class HammerSwipe {
     private container: HTMLElement;
     private containerSize: number;
-    private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOptions;
     private isSwiped = false;
@@ -33,6 +33,7 @@ class HammerSwipe {
     private border: { left: number, right: number };
     private thresholdCompensation = 0;
     private thresholdAcceptSwipe: { left: number, right: number };
+    private panCanceled: boolean;
     // Internal settings
     readonly delayRemoveItem = 400; // Milliseconds
     readonly thresholdScroll = 60; // Pixels.
@@ -44,7 +45,6 @@ class HammerSwipe {
     constructor(container: HTMLElement, options: SwipeOptions) {
         this.container = container;
         this.options = options;
-        this.containerClass = this.container.className;
 
         this.setupElements(options);
         this.checkButtons("left");
@@ -132,7 +132,10 @@ class HammerSwipe {
     }
 
     private onPanStart(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        this.panCanceled = false;
+        if (event.pointerType === "mouse" || event.target.closest("." + this.options.classPrefix + "-disabled")) {
+            this.panCanceled = true;
+        }
         if (this.isSwiped) {
             this.resetElements();
             return;
@@ -143,7 +146,7 @@ class HammerSwipe {
     }
 
     private onPanMove(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        if (this.panCanceled) return;
         if (this.isSwiped) return;
         if (this.isScrolling) return;
 
@@ -165,7 +168,7 @@ class HammerSwipe {
     }
 
     private onPanEnd(event: HammerInput) {
-        if (event.pointerType === "mouse") return;
+        if (this.panCanceled) return;
         if (this.isScrolling) return;
 
         if (this.isSwiped) {
