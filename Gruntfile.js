@@ -3,10 +3,12 @@ const webpack = require("webpack");
 const webpackConfig = require("./webpack.config");
 const webpackConfigRelease = {};
 Object.assign(webpackConfigRelease, webpackConfig, {
-    devtool: false
+    devtool: false,
+    // no minified code cause bundling issues.
+    optimization: { minimize: false }
 });
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var pkg = grunt.file.readJSON("package.json");
     grunt.initConfig({
 
