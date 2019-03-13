@@ -256,7 +256,7 @@ class HammerSwipe {
         }
 
         const direction = percentage < 0 ? "left" : percentage > 0 ? "right" : undefined;
-        if (direction && Math.abs(percentage) > this.thresholdAcceptSwipe[direction] ) {
+        if (direction && Math.abs(percentage) > this.thresholdAcceptSwipe[direction]) {
             Utils.addClass(this.container, "will-accept-swipe");
         } else {
             Utils.removeClass(this.container, "will-accept-swipe");

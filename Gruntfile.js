@@ -4,6 +4,7 @@ const webpackConfig = require("./webpack.config");
 const webpackConfigRelease = {};
 Object.assign(webpackConfigRelease, webpackConfig, {
     devtool: false,
+    mode: "production",
     // no minified code cause bundling issues.
     optimization: { minimize: false }
 });
