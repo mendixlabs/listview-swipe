@@ -22,6 +22,7 @@ module.exports = {
             }) }
         ]
     },
+    mode: "development",
     devtool: "source-map",
     externals: [ /^mxui\/|^mendix\/|^dojo\/|^dijit\// ],
     plugins: [
