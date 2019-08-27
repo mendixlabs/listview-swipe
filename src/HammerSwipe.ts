@@ -57,7 +57,7 @@ class HammerSwipe {
             : options.swipeDirection === "horizontal" ? Hammer.DIRECTION_HORIZONTAL
             : Hammer.DIRECTION_NONE;
 
-        this.hammer = new Hammer.Manager(this.container);
+        this.hammer = new Hammer.Manager(this.foreElement);
         this.hammer.add(new Hammer.Pan({
             direction,
             threshold: this.thresholdMove
@@ -72,9 +72,15 @@ class HammerSwipe {
     }
 
     private setupElements(options: SwipeOptions) {
-        // Foreground is the mx-dataview-content
-        this.foreElement = this.container.firstChild.firstChild as HTMLElement;
-        Utils.addClass(this.foreElement, this.options.classPrefix + "-foreground");
+        const setForeground = this.container.querySelector(`.${this.options.classPrefix}-foreground`);
+        if (setForeground) {
+            // Foreground is the modelled container with the foreground class
+            this.foreElement = setForeground as HTMLElement;
+        } else {
+            // Foreground is the mx-dataview-content
+            this.foreElement = this.container.firstChild.firstChild as HTMLElement;
+            Utils.addClass(this.foreElement, this.options.classPrefix + "-foreground");
+        }
 
         this.backElement = {
             left: this.findElement(options.backgroundName.left, "Swipe container left"),
@@ -100,10 +106,6 @@ class HammerSwipe {
 
     private findElement(name: string, displayName: string): HTMLElement | undefined {
         const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : undefined;
-        if (element) {
-            // Move additional elements to become a sibling of the the foreground
-            this.foreElement.parentElement.appendChild(element);
-        }
         if (name && !element) {
             throw new Error(`LVS no '${displayName}' found named ${name}. It should be placed inside the list view`);
         }
@@ -131,9 +133,21 @@ class HammerSwipe {
         }
     }
 
+    private shouldCancel(event: HammerInput): boolean {
+        const prefix = this.options.classPrefix;
+        const target = event.target;
+        const direction = event.direction;
+
+        return event.pointerType === "mouse"
+            || !!target.closest(`.${prefix}-disabled`)
+            || (!!target.closest(`.${prefix}-disabled-left`) && direction === Hammer.DIRECTION_LEFT)
+            || (!!target.closest(`.${prefix}-disabled-right`) && direction === Hammer.DIRECTION_RIGHT);
+    }
+
     private onPanStart(event: HammerInput) {
         this.panCanceled = false;
-        if (event.pointerType === "mouse" || event.target.closest("." + this.options.classPrefix + "-disabled")) {
+
+        if (this.shouldCancel(event)) {
             this.panCanceled = true;
         }
         if (this.isSwiped) {
