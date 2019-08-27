@@ -1,10 +1,10 @@
-.widget-listview-swipe > .mx-listview-list {
+.widget-listview-swipe > ul {
     overflow: hidden;
     will-change: transform, opacity;
 }
 
-.widget-listview-swipe .mx-listview-item.animate,
-.widget-listview-swipe .mx-listview-item.animate .widget-listview-swipe-foreground {
+.widget-listview-swipe > ul > li.animate,
+.widget-listview-swipe > ul > li.animate .widget-listview-swipe-foreground {
     transition: all .4s;
     -webkit-transition: all .4s;
     touch-action: pan-y;
@@ -42,14 +42,14 @@
 }
 
 /* Help styling for most common swipe cases */
-.widget-listview-swipe .mx-list .mx-listview-item {
+.mx-listview.widget-listview-swipe > ul > li {
     padding: 0;
 }
-.widget-listview-swipe .mx-listview-item > .mx-dataview {
+.widget-listview-swipe > ul > li > .mx-dataview {
     background-color: inherit;
 }
-.widget-listview-swipe .mx-listview-item > .mx-dataview > .mx-dataview-content {
-    padding: 10px 0;
+.widget-listview-swipe > ul > li > .mx-dataview > .mx-dataview-content {
+    padding: 0;
     background-color: inherit;
 }
 .widget-listview-swipe-background .mx-button {

@@ -108,7 +108,14 @@ class ListViewSwipe extends WidgetBase {
                 // https://apidocs.mendix.com/7/client/
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
-                        const listItems = this.targetNode.querySelectorAll(".mx-listview-item:not(.swipe-connected)");
+                        // tslint:disable-next-line:max-line-length
+                        const listItemsOffscreen = this.targetNode.querySelectorAll(".mx-offscreen > li:not(.swipe-connected):not(.mx-listview-empty)");
+                        Hammer.each(listItemsOffscreen, (container: HTMLElement) => {
+                            container.classList.add("swipe-connected");
+                            this.hammers.push(new HammerSwipe(container, swipeOptions));
+                        }, this);
+                        // tslint:disable-next-line:max-line-length
+                        const listItems = this.targetNode.querySelectorAll("ul > li:not(.swipe-connected):not(.mx-listview-empty)");
                         Hammer.each(listItems, (container: HTMLElement) => {
                             container.classList.add("swipe-connected");
                             this.hammers.push(new HammerSwipe(container, swipeOptions));

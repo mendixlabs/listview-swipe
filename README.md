@@ -29,7 +29,7 @@ http://listviewswipeout.mxapps.io
 
  - Advanced: design the background
    - Create 1, 2, 3 or 4 containers inside the list view item:
-     - The 'Swipe container' will be shown when the foreground is swiped away
+     - The 'Swipe container' will be shown as the foreground and is swiped away. Add the class `widget-listview-swipe-foreground` to place over the background containers.
      - The 'Hide container' will be shown after swiping, during hide animation
      - It is possible to create container for left and right or share them
    - Add the container names to their respective field in the widget configuration
@@ -42,7 +42,6 @@ http://listviewswipeout.mxapps.io
     - The 'widget-listview-swipe-foreground' will be white #FFFFF
     - The 'widget-listview-swipe-background' will be light light gray #d3d3d3
     - The 'widget-listview-swipe-background-after' will be gray #808080
-  - Custom style applied to the .mx-listview-item ar normal
   - Custom style to all swipe widget could also be applied to:
     - .widget-listview-swipe-foreground
     - .widget-listview-swipe-background-left
@@ -51,19 +50,23 @@ http://listviewswipeout.mxapps.io
     - .widget-listview-swipe-background-after-left
     - .widget-listview-swipe-background-after-right
     - .widget-listview-swipe-background-after-shared
-  - Interactive classes
+  - Disable classes:
+    - .widget-listview-swipe-disabled
+    - .widget-listview-swipe-disabled-left
+    - .widget-listview-swipe-disabled-right
+  - Interactive classes are attached during action
     - .will-accept-swipe
     - .swiping-right
     - .swiping-left
 
 ### Disable swipe
-For some use cases the swiping should be (conditional) disabled. This could be done by adding a CSS class `.widget-listview-swipe-disabled` on the list view item, to disable a single item. Or to listview to disable all swipe actions.
+For some use cases the swiping should be (conditional) disabled. This could be done by adding a CSS class `.widget-listview-swipe-disabled`,  `.widget-listview-swipe-disabled-left` or `.widget-listview-swipe-disabled-right` on the list view item, to disable a single item. Or add the class to listview to disable all swipe actions.
 And other custom widgets, like `EnumClass`, could be used to change the classes dynamically at runtime. https://appstore.home.mendix.com/link/app/2641/
-
 
 ## Known issues
  - Swipe should be horizontal. When moved too much, it will cancel the swipe.
  - The 'Open page' should contain a page that has a dataview of the type 'Item entity' or non at all. However this is not check by the modeler nor the widget in runtime.
+ - This widget can not handle a list view in a list view.
 
 ## Issues, suggestions and feature requests
 We are actively maintaining this widget, please report any issues or suggestion for improvement at https://github.com/mendixlabs/listview-swipe/issues
